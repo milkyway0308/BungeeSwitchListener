@@ -1,0 +1,3 @@
+name: BukkitSwitchHandler
+version: ${project.version}
+main: skywolf46.bukkitswitchhandler.BukkitSwitchHandler
