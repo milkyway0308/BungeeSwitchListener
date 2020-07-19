@@ -10,8 +10,8 @@
 
 ### 어떻게 쓰죠?
 1. BungeeSwitchListener은 번지코드에, BukkitSwitchHandler은 사용할 서버들에 설치하세요.
-2. 플러그인에서 EventHandler을 통해 이벤트를 처리합니다.
-3-1. 만약 업데이트가 필요한 경우, `BukkitSwitchHandler#reloadRequest(String category)` 메서드를 통해 리퀘스트를 생성하세요.
-3-2. `PlayerReloadRequest#write(String|double|float|int|char|byte|byte[])` 메서드로 원하는 데이터를 보내세요.
-3-3. `PlayerReloadRequest#send(UUID)` 메서드로 대상 플레이어가 접속한 서버에 데이터 정정 요청을 보내세요.
-3-4. 대상 서버에서 `PlayerLoadRequestEvent` 이벤트를 받아 처리하세요.
+2. 플러그인에서 EventHandler을 통해 이벤트를 처리합니다.<br>
+3-1. 만약 업데이트가 필요한 경우, `BukkitSwitchHandler#reloadRequest(String category)` 메서드를 통해 리퀘스트를 생성하세요.<br>
+3-2. `PlayerReloadRequest#write(String|double|float|int|char|byte|byte[])` 메서드로 원하는 데이터를 보내세요.<br>
+3-3. `PlayerReloadRequest#send(UUID)` 메서드로 대상 플레이어가 접속한 서버에 데이터 정정 요청을 보내세요.<br>
+3-4. 대상 서버에서 `PlayerLoadRequestEvent` 이벤트를 받아 처리하세요.<br>
