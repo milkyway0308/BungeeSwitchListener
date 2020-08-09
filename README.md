@@ -37,8 +37,27 @@ public class TestPlugin extends JavaPlugin implements Listener{
     @Override
     public void onEnable() {
         if (Bukkit.getPluginManager().getPlugin("BukkitSwitchHandler") != null){
+            try{
+                PreparedStatement stmt = BukkitSwitchHandler.getSQL().prepareStatement("create table if not exists testTable(user varchar(50), dataName varchar(20),data varchar(200), primary key (user)) CHARACTER SET utf8 COLLATE utf8_general_ci;");
+                stmt.executeUpdate();
+            }catch (Exception ex){
+                ex.printStackTrace();
+            }
            BukkitSwitchHandler.register("TestPlugin", (uid,di) -> {
                // You can use DataInput for read external data
+               try {
+                   PreparedStatement stmt = BukkitSwitchHandler.getSQL().prepareStatement("select * from EssQL where user = ?");
+                   stmt.setString(1, uid.toString());
+                   ResultSet rs = stmt.executeQuery();
+                   if(rs.next()) {
+                       // Print "data" column
+                       System.out.println(rs.getString(3));
+                   } else {
+                       System.out.println("Data not exist: " + uid.toString());  
+                   }
+               } catch (Exception ex){
+                   
+               }
            }, (uid, di) -> {
                // Reload request here.
            });
@@ -48,11 +67,14 @@ public class TestPlugin extends JavaPlugin implements Listener{
     @EventHandler
     public void ev(PlayerQuitEvent e){
         try {
+            // Save.
             PreparedStatement stmt = BukkitSwitchHandler.getSQL().prepareStatement("insert into testTable values(?, ?, ?)");
             stmt.setString(1, e.getPlayer().getUniqueID().toString());
             stmt.setString(2, "Test Data");
             stmt.setString(3, "Hello, World");
-        }catch (Exception ex){
+            stmt.executeUpdate();
+            BukkitSwitchHandler.saveCompleteRequest("TestPlugin", e.getPlayer().getUniqueId());
+        } catch (Exception ex){
             
         }
     }
