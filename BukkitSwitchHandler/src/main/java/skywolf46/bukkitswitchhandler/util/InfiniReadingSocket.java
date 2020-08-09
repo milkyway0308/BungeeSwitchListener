@@ -7,6 +7,7 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import org.bukkit.Bukkit;
 import skywolf46.bukkitswitchhandler.BukkitSwitchHandler;
 
 import java.io.ByteArrayInputStream;
@@ -20,9 +21,9 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
-public class InfiniReadingSocket extends Thread {
-    private AtomicBoolean enabled = new AtomicBoolean(false);
+public class InfiniReadingSocket {
     private AtomicBoolean active = new AtomicBoolean(false);
+    private AtomicBoolean failed = new AtomicBoolean(false);
     private List<Consumer<InfiniReadingSocket>> obje = new ArrayList<>();
     private final Object LOCK = new Object();
     private Channel channel;
@@ -60,14 +61,6 @@ public class InfiniReadingSocket extends Thread {
                                     System.out.println("Connected");
                                     BukkitSwitchHandler.initialize(InfiniReadingSocket.this);
                                 }
-                            } else {
-//                                String name = readString(buf);
-//                                byte[] data = new byte[buf.readInt()];
-//                                buf.readBytes(data);
-//                                ByteArrayInputStream bios = new ByteArrayInputStream(data);
-//                                DataInputStream di = new DataInputStream(bios);
-//                                BukkitSwitchHandler.load(name, di);
-//                                di.close();
                             }
                         }
 
@@ -81,16 +74,10 @@ public class InfiniReadingSocket extends Thread {
 
 
         } catch (Exception ex) {
-            ex.printStackTrace();
+            failed.set(true);
         }
     }
 
-    private String readString(ByteBuf buf) {
-        int len = buf.readShort();
-        byte[] data = new byte[len];
-        buf.readBytes(data);
-        return new String(data);
-    }
 
     public void add(Consumer<InfiniReadingSocket> soc) {
         synchronized (LOCK) {
@@ -105,9 +92,9 @@ public class InfiniReadingSocket extends Thread {
         return channel;
     }
 
-    @Override
-    public void run() {
+
+
+    public boolean failed() {
+        return failed.get();
     }
-
-
 }

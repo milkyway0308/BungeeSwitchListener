@@ -46,20 +46,6 @@ public final class BukkitSwitchHandler extends JavaPlugin {
     public void onEnable() {
         // Plugin startup logic
         inst = this;
-        register("Test", (user, stream) -> {
-            try {
-                System.out.println(stream.readUTF());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }, (user, stream) -> {
-            try {
-                System.out.println(stream.readUTF());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        });
-
         try {
             Class.forName("com.mysql.jdbc.Driver");
         } catch (ClassNotFoundException e) {
@@ -74,7 +60,6 @@ public final class BukkitSwitchHandler extends JavaPlugin {
         if (!fl.exists()) {
             fl.getParentFile().mkdirs();
             saveResource("config.yml", true);
-//            return;
         }
         YamlConfiguration conf = YamlConfiguration.loadConfiguration(fl);
         String url = conf.getString("SQL.Address");
@@ -106,6 +91,7 @@ public final class BukkitSwitchHandler extends JavaPlugin {
     }
 
     public static void register(String name, BiConsumer<UUID, DataInput> load, BiConsumer<UUID, DataInput> reload) {
+        System.out.println("Target - " + name);
         listener.put(name, load);
         rellistener.put(name, reload);
     }
@@ -180,18 +166,28 @@ public final class BukkitSwitchHandler extends JavaPlugin {
             InfiniReadingSocket waiter = null;
             while (socket == null) {
                 if (waiter != null) {
-                    try {
-                        Thread.sleep(100);
-                        continue;
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+                    if (waiter.failed()) {
+                        Bukkit.getConsoleSender().sendMessage("§6BukkitSwitchHandler §7| §cBungee connection failed. Retry after 1 seconds...");
+                        waiter = null;
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    } else {
+                        try {
+                            Thread.sleep(100);
+                            continue;
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
                     }
                 }
+
                 try {
                     waiter = new InfiniReadingSocket();
                 } catch (Exception ex) {
 //                        socket = null;
-                    Bukkit.getConsoleSender().sendMessage("§cBukkitTrojan §7| §cBungee connection failed. Trying after 4 seconds...");
                     try {
                         Thread.sleep(1000L);
                     } catch (InterruptedException e) {

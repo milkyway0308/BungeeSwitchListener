@@ -13,7 +13,7 @@ public class PlayerJoinListener implements Listener {
         switch (e.getReason()) {
             case JOIN_PROXY:
             case LOBBY_FALLBACK:
-                e.getRequest().getTarget().sendData("MC|InitialLoad", new byte[0]);
+                e.getRequest().getTarget().sendData("MC|InitialLoad", e.getPlayer().getUniqueId().toString().getBytes());
         }
 //        System.out.println("Connect " + e.getReason().name());
     }
