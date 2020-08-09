@@ -1,6 +1,7 @@
 package skywolf46.bukkitswitchhandler.listener;
 
 import org.bukkit.Bukkit;
+import org.bukkit.craftbukkit.v1_12_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -19,19 +20,19 @@ public class EventListener implements PluginMessageListener {
 
     @Override
     public void onPluginMessageReceived(String channel, Player player, byte[] message) {
-        switch (channel) {
-            case "SWHandler|Request": {
-                Bukkit.getPluginManager().callEvent(new PlayerLoadRequestEvent(UUID.fromString(new String(message))));
-
+        ByteArrayInputStream bais = new ByteArrayInputStream(message);
+        DataInputStream dis = new DataInputStream(bais);
+        try {
+            byte type = dis.readByte();
+            String task = dis.readUTF();
+            UUID uid = UUID.fromString(dis.readUTF());
+            if (type == 0) {
+                BukkitSwitchHandler.load(task, uid, dis);
             }
-            break;
-            case "SWHandler|Prepare": {
-                System.out.println("Ready to prepare");
-                Bukkit.getPluginManager().callEvent(new PlayerSaveRequestEvent(UUID.fromString(new String(message))));
-                player.sendPluginMessage(BukkitSwitchHandler.inst(), "SWHandler|Prepared", message);
-            }
-            break;
-
+            dis.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+
     }
 }

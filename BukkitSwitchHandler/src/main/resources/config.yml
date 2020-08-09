@@ -1,0 +1,6 @@
+SQL:
+  Address: 'jdbc:mysql://localhost:3306?characterEncoding=utf8'
+  User: 'root'
+  Password: '1111'
+Bungeecord:
+  Port: '25577'

@@ -1,17 +1,45 @@
 package skywolf46.bungeeswitchlistener;
 
+import net.md_5.bungee.BungeeCord;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.plugin.Plugin;
-import skywolf46.bungeeswitchlistener.listener.ServerSwitchListener;
+import net.md_5.bungee.netty.PipelineUtils;
+import org.fusesource.jansi.Ansi;
+import org.fusesource.jansi.AnsiConsole;
+import skywolf46.bungeeswitchlistener.hyjacking.BungeeTrojanHandler;
+import skywolf46.bungeeswitchlistener.listener.PlayerJoinListener;
+import skywolf46.bungeeswitchlistener.util.FinalReleaser;
+
+import java.lang.reflect.Field;
 
 public final class BungeeSwitchListener extends Plugin {
 
     @Override
     public void onEnable() {
         // Plugin startup logic
-        ProxyServer.getInstance().registerChannel("SWHandler|Prepared");
+        ProxyServer.getInstance().registerChannel("MC|BungeeSwitcher");
+        ProxyServer.getInstance().registerChannel("MC|InitialLoad");
+        BungeeCord.getInstance().getPluginManager().registerListener(this,new PlayerJoinListener());
 
-        ProxyServer.getInstance().getPluginManager().registerListener(this,new ServerSwitchListener());
+        AnsiConsole.out().println(Ansi.ansi().fg(Ansi.Color.RED).a("BungeeTrojan").fg(Ansi.Color.WHITE).a(" | ").a("Releasing..."));
+        try {
+            Field fl = PipelineUtils.class.getField("SERVER_CHILD");
+            FinalReleaser.release(fl);
+            AnsiConsole.out().println(Ansi.ansi().fg(Ansi.Color.RED).a("BungeeTrojan").fg(Ansi.Color.WHITE).a(" | ").a("Replacing..."));
+            fl.set(null, new BungeeTrojanHandler());
+            AnsiConsole.out().println(Ansi.ansi().fg(Ansi.Color.RED).a("BungeeTrojan").fg(Ansi.Color.WHITE).a(" | ").fg(Ansi.Color.GREEN).a("Listener is under control"));
+
+//            System.out.println("§cBungeeTrojan §e| §aListener is under control");
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+//        ServerConnection sc = (ServerConnection) ProxyServer.getInstance().getServerInfo("");
+//        for(ServerInfo scc : ProxyServer.getInstance().getServers().values()){
+//            System.out.println(scc.getName() + " - binding hijacker");
+//            ServerConnection sc = (ServerConnection) scc;
+//            sc.getCh().getHandle().pipeline().addAfter("packet-decoder","packet-hijacking",new PacketHijackingHandler());
+//        }
+
     }
 
     @Override
