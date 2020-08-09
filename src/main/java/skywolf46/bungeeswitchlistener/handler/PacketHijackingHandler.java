@@ -25,7 +25,7 @@ public class PacketHijackingHandler extends ChannelInboundHandlerAdapter {
             int x1 = bb.readInt();
             int x2 = bb.readInt();
             if (x1 == 98012 && x2 == 70031) {
-                System.out.println("Attatched");
+
                 try {
                     while (ctx.pipeline().removeFirst() != null) {
                     }

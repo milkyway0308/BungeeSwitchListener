@@ -29,7 +29,6 @@ public class InfiniReadingSocket {
     private Channel channel;
 
     public InfiniReadingSocket() {
-        System.out.println("Create.");
         try {
             EventLoopGroup group = new NioEventLoopGroup();
             Bootstrap b = new Bootstrap();
@@ -43,7 +42,6 @@ public class InfiniReadingSocket {
                             bb.writeInt(98012);
                             bb.writeInt(70031);
                             ctx.writeAndFlush(bb);
-                            System.out.println("Active");
                         }
 
                         @Override
@@ -55,10 +53,8 @@ public class InfiniReadingSocket {
                                         active.set(true);
                                         for (Consumer<InfiniReadingSocket> infi : obje)
                                             infi.accept(InfiniReadingSocket.this);
-                                        System.out.println(obje.size());
                                         obje.clear();
                                     }
-                                    System.out.println("Connected");
                                     BukkitSwitchHandler.initialize(InfiniReadingSocket.this);
                                 }
                             }

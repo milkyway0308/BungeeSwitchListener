@@ -14,14 +14,11 @@ public class ByteReadHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         ByteBuf bb = (ByteBuf) msg;
-//        bf.readerIndex(bf.readableBytes());
-//        System.out.println("U shall not pass");
         byte type = bb.readByte();
         String task = readString(bb);
         UUID uid = UUID.fromString(readString(bb));
         byte[] dat = new byte[bb.readInt()];
         bb.readBytes(dat);
-        System.out.println("Data Read / Task " + task);
         ProxiedPlayer pp = BungeeCord.getInstance().getPlayer(uid);
         if (pp != null) {
             ByteArrayOutputStream baos = new ByteArrayOutputStream();

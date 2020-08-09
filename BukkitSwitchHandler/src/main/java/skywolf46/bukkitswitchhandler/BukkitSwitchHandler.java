@@ -17,9 +17,7 @@ import skywolf46.bukkitswitchhandler.util.Request;
 import java.io.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -54,7 +52,7 @@ public final class BukkitSwitchHandler extends JavaPlugin {
         EventListener el = new EventListener();
         Bukkit.getMessenger().registerIncomingPluginChannel(this, "MC|BungeeSwitcher", el);
         Bukkit.getMessenger().registerIncomingPluginChannel(this, "MC|InitialLoad", new DataLoadListener());
-        saveCompleteRequest("Tester", UUID.randomUUID());
+//        saveCompleteRequest("Tester", UUID.randomUUID());
 
         File fl = new File(getDataFolder(), "config.yml");
         if (!fl.exists()) {
@@ -65,12 +63,16 @@ public final class BukkitSwitchHandler extends JavaPlugin {
         String url = conf.getString("SQL.Address");
         try {
             SQL = DriverManager.getConnection(url, conf.getString("SQL.User"), conf.getString("SQL.Password"));
+            PreparedStatement stmt = BukkitSwitchHandler.getSQL().prepareStatement("show databases like 'BungeecordBridge'");
+            ResultSet rs = stmt.executeQuery();
+            if (!rs.next())
+                BukkitSwitchHandler.getSQL().prepareStatement("create database BungeecordBridge CHARACTER SET utf8 COLLATE utf8_general_ci;").execute();
+            BukkitSwitchHandler.getSQL().prepareStatement("use BungeecordBridge").execute();
         } catch (SQLException e) {
             e.printStackTrace();
             return;
         }
         retry();
-
     }
 
     @Override
@@ -91,7 +93,6 @@ public final class BukkitSwitchHandler extends JavaPlugin {
     }
 
     public static void register(String name, BiConsumer<UUID, DataInput> load, BiConsumer<UUID, DataInput> reload) {
-        System.out.println("Target - " + name);
         listener.put(name, load);
         rellistener.put(name, reload);
     }

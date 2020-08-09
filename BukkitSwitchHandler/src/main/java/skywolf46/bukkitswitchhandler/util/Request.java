@@ -11,7 +11,6 @@ public class Request {
 
     public static void saveComplete(String task, UUID uid) {
         BukkitSwitchHandler.getSocket().add(tar -> {
-            System.out.println("...Work.");
             ByteBuf bf = tar.getSocketChannel().alloc().buffer();
             bf.writeByte(0);
             writeString(bf, task);

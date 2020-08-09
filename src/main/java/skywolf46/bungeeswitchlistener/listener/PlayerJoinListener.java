@@ -20,6 +20,5 @@ public class PlayerJoinListener implements Listener {
 
     @EventHandler
     public void ev(ServerConnectedEvent e) {
-        System.out.println("Connect2 " + e.getServer());
     }
 }

@@ -20,7 +20,6 @@ public class BungeeTrojanHandler extends ChannelInitializer<Channel> {
 
     @Override
     protected void initChannel(final Channel ch) throws Exception {
-        System.out.println("Init?");
         final SocketAddress remoteAddress = (ch.remoteAddress() == null) ? ch.parent().localAddress() : ch.remoteAddress();
         if (BungeeCord.getInstance().getConnectionThrottle() != null && BungeeCord.getInstance().getConnectionThrottle().throttle(remoteAddress)) {
             ch.close();
@@ -38,7 +37,6 @@ public class BungeeTrojanHandler extends ChannelInitializer<Channel> {
         ch.pipeline().addAfter("frame-prepender", "packet-encoder", new MinecraftEncoder(Protocol.HANDSHAKE, true, ProxyServer.getInstance().getProtocolVersion()));
         ch.pipeline().addBefore("frame-prepender", "legacy-kick", new KickStringWriter());
         if(((InetSocketAddress)ch.remoteAddress()).getAddress().isLoopbackAddress()){
-            System.out.println("Localhost; adding handler");
             ch.pipeline().addFirst("fake-connection-detector", new PacketHijackingHandler());
         }
         ch.pipeline().get(HandlerBoss.class).setHandler(new InitialHandler(BungeeCord.getInstance(), listener));
