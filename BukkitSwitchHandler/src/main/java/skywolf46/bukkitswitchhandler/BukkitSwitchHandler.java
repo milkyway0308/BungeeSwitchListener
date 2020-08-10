@@ -8,6 +8,8 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
+import skywolf46.bukkitswitchhandler.Thread.SQLConsumerThread;
+import skywolf46.bukkitswitchhandler.listener.BroadcastListener;
 import skywolf46.bukkitswitchhandler.listener.DataLoadListener;
 import skywolf46.bukkitswitchhandler.listener.EventListener;
 import skywolf46.bukkitswitchhandler.util.InfiniReadingSocket;
@@ -38,12 +40,17 @@ public final class BukkitSwitchHandler extends JavaPlugin {
     private static HashMap<String, List<UUID>> sendReady = new HashMap<>();
 
     private static HashMap<String, List<UUID>> reloadReady = new HashMap<>();
+
     private static HashMap<String, BiConsumer<UUID, DataInput>> rellistener = new HashMap<>();
+
+    private static SQLConsumerThread thd;
+
 
     @Override
     public void onEnable() {
         // Plugin startup logic
         inst = this;
+        (thd = new SQLConsumerThread()).start();
         try {
             Class.forName("com.mysql.jdbc.Driver");
         } catch (ClassNotFoundException e) {
@@ -52,6 +59,7 @@ public final class BukkitSwitchHandler extends JavaPlugin {
         EventListener el = new EventListener();
         Bukkit.getMessenger().registerIncomingPluginChannel(this, "MC|BungeeSwitcher", el);
         Bukkit.getMessenger().registerIncomingPluginChannel(this, "MC|InitialLoad", new DataLoadListener());
+        Bukkit.getMessenger().registerIncomingPluginChannel(this, "MC|BSLBroadcast", new BroadcastListener());
 //        saveCompleteRequest("Tester", UUID.randomUUID());
 
         File fl = new File(getDataFolder(), "config.yml");
@@ -78,8 +86,12 @@ public final class BukkitSwitchHandler extends JavaPlugin {
     @Override
     public void onDisable() {
         // Plugin shutdown logic
+        thd.stopThread();
     }
 
+    public static SQLConsumerThread getAsyncThread() {
+        return thd;
+    }
 
     public static BukkitSwitchHandler inst() {
         return inst;
@@ -88,6 +100,13 @@ public final class BukkitSwitchHandler extends JavaPlugin {
     public static void load(String name, UUID user, DataInput bios) {
         if (listener.containsKey(name))
             listener.get(name).accept(user, bios);
+        else
+            throw new IllegalStateException("Listener for \"" + name + "\" is not registered");
+    }
+
+    public static void reload(String name, UUID user, DataInput bios) {
+        if (rellistener.containsKey(name))
+            rellistener.get(name).accept(user, bios);
         else
             throw new IllegalStateException("Listener for \"" + name + "\" is not registered");
     }
@@ -135,6 +154,16 @@ public final class BukkitSwitchHandler extends JavaPlugin {
             }
         }
         Request.reload(task, player, buffer);
+    }
+
+    public static void broadcastRequest(String task, UUID player, Consumer<ByteBuf> buffer) {
+        synchronized (BukkitSwitchHandler.class) {
+            if (socket == null) {
+                reloadReady.computeIfAbsent(task, a -> new ArrayList<>()).add(player);
+                return;
+            }
+        }
+        Request.broadcast(task, player, buffer);
     }
 
     public static InfiniReadingSocket getSocket() {

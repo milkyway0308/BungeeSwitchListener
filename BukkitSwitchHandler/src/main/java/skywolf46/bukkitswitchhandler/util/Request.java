@@ -47,6 +47,16 @@ public class Request {
         });
     }
 
+    public static void broadcast(String task, UUID player, Consumer<ByteBuf> buf) {
+        BukkitSwitchHandler.getSocket().add(tar -> {
+            ByteBuf bf = tar.getSocketChannel().alloc().buffer();
+            bf.writeByte(2);
+            writeString(bf, task);
+            writeString(bf, player.toString());
+            writeBuffer(buf, tar, bf);
+        });
+    }
+
     private static void writeBuffer(Consumer<ByteBuf> buf, InfiniReadingSocket tar, ByteBuf bf) {
         ByteBuf buffer = Unpooled.buffer();
         buf.accept(buffer);
