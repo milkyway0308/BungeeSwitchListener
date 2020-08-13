@@ -1,29 +1,23 @@
 package skywolf46.bukkitswitchhandler;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelFuture;
-import javafx.fxml.FXMLLoader;
 import org.bukkit.Bukkit;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import skywolf46.bukkitswitchhandler.Thread.SQLConsumerThread;
 import skywolf46.bukkitswitchhandler.listener.BroadcastListener;
 import skywolf46.bukkitswitchhandler.listener.DataLoadListener;
 import skywolf46.bukkitswitchhandler.listener.EventListener;
 import skywolf46.bukkitswitchhandler.util.InfiniReadingSocket;
-import skywolf46.bukkitswitchhandler.util.PlayerReloadRequest;
 import skywolf46.bukkitswitchhandler.util.Request;
 
 import java.io.*;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
@@ -43,10 +37,17 @@ public final class BukkitSwitchHandler extends JavaPlugin {
 
     private static HashMap<String, BiConsumer<UUID, DataInput>> rellistener = new HashMap<>();
 
+
     private static SQLConsumerThread thd;
 
+    private static final AtomicLong RELOAD_TIMESTAMP = new AtomicLong(0);
+
+    private static final HashMap<Long, Consumer<List<DataInput>>> WAITING_TIMESTAMP = new HashMap<>();
+
+    private static final Object LOCK = new Object();
 
     @Override
+
     public void onEnable() {
         // Plugin startup logic
         inst = this;
@@ -156,12 +157,16 @@ public final class BukkitSwitchHandler extends JavaPlugin {
         Request.reload(task, player, buffer);
     }
 
-    public static void broadcastRequest(String task, UUID player, Consumer<ByteBuf> buffer) {
+    public static void broadcastRequest(String task, UUID player, Consumer<ByteBuf> buffer, Consumer<List<DataInput>> inputs) {
         synchronized (BukkitSwitchHandler.class) {
             if (socket == null) {
                 reloadReady.computeIfAbsent(task, a -> new ArrayList<>()).add(player);
                 return;
             }
+        }
+        long timestamp = RELOAD_TIMESTAMP.incrementAndGet();
+        synchronized (LOCK) {
+            WAITING_TIMESTAMP.put(timestamp, inputs);
         }
         Request.broadcast(task, player, buffer);
     }

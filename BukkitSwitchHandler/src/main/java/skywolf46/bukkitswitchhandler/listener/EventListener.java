@@ -1,17 +1,10 @@
 package skywolf46.bukkitswitchhandler.listener;
 
-import org.bukkit.Bukkit;
-import org.bukkit.craftbukkit.v1_12_R1.entity.CraftPlayer;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
 import org.bukkit.plugin.messaging.PluginMessageListener;
 import skywolf46.bukkitswitchhandler.BukkitSwitchHandler;
-import skywolf46.bukkitswitchhandler.event.PlayerLoadRequestEvent;
-import skywolf46.bukkitswitchhandler.event.PlayerSaveRequestEvent;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.UUID;

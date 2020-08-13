@@ -9,6 +9,9 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import org.bukkit.Bukkit;
 import skywolf46.bukkitswitchhandler.BukkitSwitchHandler;
+import skywolf46.bukkitswitchhandler.handler.BungeePacketProcessor;
+import skywolf46.bukkitswitchhandler.handler.PacketDataDecoder;
+import skywolf46.bukkitswitchhandler.handler.PacketDataEncoder;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInput;
@@ -41,13 +44,15 @@ public class InfiniReadingSocket {
                             ByteBuf bb = Unpooled.buffer();
                             bb.writeInt(98012);
                             bb.writeInt(70031);
+                            bb.writeInt(Bukkit.getPort());
                             ctx.writeAndFlush(bb);
                         }
 
                         @Override
                         public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
-                            ByteBuf buf = (ByteBuf) msg;
                             if (!active.get()) {
+                                ByteBuf buf = (ByteBuf) msg;
+                                buf.markReaderIndex();
                                 if (buf.readInt() == 108487 && buf.readInt() == 498130) {
                                     synchronized (LOCK) {
                                         active.set(true);
@@ -55,8 +60,14 @@ public class InfiniReadingSocket {
                                             infi.accept(InfiniReadingSocket.this);
                                         obje.clear();
                                     }
+                                    ctx.pipeline().addFirst("bungee-decoder", new PacketDataDecoder());
+                                    ctx.pipeline().addFirst("bungee-encoder", new PacketDataEncoder());
+                                    ctx.pipeline().addAfter("bungee-decoder", "bungee-processor", new BungeePacketProcessor());
+                                    ctx.pipeline().remove(this);
                                     BukkitSwitchHandler.initialize(InfiniReadingSocket.this);
                                 }
+                            } else {
+                                // Listen broadcast
                             }
                         }
 
@@ -87,7 +98,6 @@ public class InfiniReadingSocket {
     public Channel getSocketChannel() {
         return channel;
     }
-
 
 
     public boolean failed() {

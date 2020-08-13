@@ -1,25 +1,45 @@
 package skywolf46.bungeeswitchlistener;
 
+import io.netty.channel.ChannelHandlerContext;
 import net.md_5.bungee.BungeeCord;
 import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.netty.PipelineUtils;
 import org.fusesource.jansi.Ansi;
 import org.fusesource.jansi.AnsiConsole;
+import skywolf46.bungeeswitchlistener.data.BungeePacketData;
 import skywolf46.bungeeswitchlistener.hyjacking.BungeeTrojanHandler;
 import skywolf46.bungeeswitchlistener.listener.PlayerJoinListener;
 import skywolf46.bungeeswitchlistener.util.FinalReleaser;
 
 import java.lang.reflect.Field;
+import java.util.HashMap;
 
 public final class BungeeSwitchListener extends Plugin {
+    private static final HashMap<Integer, ChannelHandlerContext> context = new HashMap<>();
+
+    public static void register(int port, ChannelHandlerContext ctx) {
+        context.put(port, ctx);
+    }
+
+    public static ChannelHandlerContext get(int port) {
+        return context.get(port);
+    }
+
+    public static void broadcast(ChannelHandlerContext ctx, BungeePacketData bpd) {
+        for (ChannelHandlerContext cht : context.values()) {
+            if (cht == ctx)
+                continue;
+            cht.writeAndFlush(bpd);
+        }
+    }
 
     @Override
     public void onEnable() {
         // Plugin startup logic
-        ProxyServer.getInstance().registerChannel("MC|BungeeSwitcher");
-        ProxyServer.getInstance().registerChannel("MC|InitialLoad");
-        BungeeCord.getInstance().getPluginManager().registerListener(this,new PlayerJoinListener());
+//        ProxyServer.getInstance().registerChannel("MC|BungeeSwitcher");
+//        ProxyServer.getInstance().registerChannel("MC|InitialLoad");
+        BungeeCord.getInstance().getPluginManager().registerListener(this, new PlayerJoinListener());
 
         AnsiConsole.out().println(Ansi.ansi().fg(Ansi.Color.RED).a("BungeeTrojan").fg(Ansi.Color.WHITE).a(" | ").a("Releasing..."));
         try {

@@ -1,21 +1,17 @@
 package skywolf46.bukkitswitchhandler.event;
 
-import org.bukkit.event.Event;
+import io.netty.buffer.ByteBuf;
 import org.bukkit.event.HandlerList;
 
 import java.util.UUID;
 
-public class PlayerSaveRequestEvent extends Event {
+public class ClearDataEvent extends BukkitSwitchHandlerEvent {
     private static HandlerList handlerList = new HandlerList();
-
     private UUID uid;
 
-    public PlayerSaveRequestEvent(UUID uid) {
+    public ClearDataEvent(ByteBuf buffer, int initialIndex, String category, UUID uid) {
+        super(buffer, initialIndex, category);
         this.uid = uid;
-    }
-
-    public UUID getUid() {
-        return uid;
     }
 
     @Override
@@ -23,7 +19,7 @@ public class PlayerSaveRequestEvent extends Event {
         return handlerList;
     }
 
-    public static HandlerList getHandlerList() {
-        return handlerList;
+    public UUID getUid() {
+        return uid;
     }
 }
