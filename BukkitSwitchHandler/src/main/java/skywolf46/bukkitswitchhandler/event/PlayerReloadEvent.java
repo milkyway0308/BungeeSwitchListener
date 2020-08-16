@@ -22,4 +22,8 @@ public class PlayerReloadEvent extends BukkitSwitchHandlerEvent {
     public UUID getUid() {
         return uid;
     }
+
+    public static HandlerList getHandlerList() {
+        return handlerList;
+    }
 }

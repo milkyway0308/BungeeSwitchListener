@@ -1,5 +1,6 @@
 package skywolf46.bungeeswitchlistener.handler;
 
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import net.md_5.bungee.BungeeCord;
@@ -21,7 +22,7 @@ public class BungeePacketProcessor extends ChannelInboundHandlerAdapter {
                 ProxiedPlayer pp = BungeeCord.getInstance().getPlayer(bpd.getUID());
                 if (pp != null && pp.getServer() != null) {
                     Server sv = pp.getServer();
-                    ChannelHandlerContext ct = BungeeSwitchListener.get(((InetSocketAddress) sv.getInfo().getSocketAddress()).getPort());
+                    Channel ct = BungeeSwitchListener.get(((InetSocketAddress) sv.getInfo().getSocketAddress()).getPort());
                     if (ct != null)
                         ct.writeAndFlush(bpd);
                 }

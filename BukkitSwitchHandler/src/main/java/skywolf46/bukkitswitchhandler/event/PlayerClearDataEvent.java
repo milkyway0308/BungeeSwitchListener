@@ -5,11 +5,11 @@ import org.bukkit.event.HandlerList;
 
 import java.util.UUID;
 
-public class ClearDataEvent extends BukkitSwitchHandlerEvent {
+public class PlayerClearDataEvent extends BukkitSwitchHandlerEvent {
     private static HandlerList handlerList = new HandlerList();
     private UUID uid;
 
-    public ClearDataEvent(ByteBuf buffer, int initialIndex, String category, UUID uid) {
+    public PlayerClearDataEvent(ByteBuf buffer, int initialIndex, String category, UUID uid) {
         super(buffer, initialIndex, category);
         this.uid = uid;
     }
@@ -21,5 +21,9 @@ public class ClearDataEvent extends BukkitSwitchHandlerEvent {
 
     public UUID getUid() {
         return uid;
+    }
+
+    public static HandlerList getHandlerList() {
+        return handlerList;
     }
 }

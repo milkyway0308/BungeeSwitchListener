@@ -13,22 +13,22 @@ public class BungeePacketProcessor extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         BungeePacketData bpd = (BungeePacketData) msg;
+        System.out.println(bpd.isUserData());
+        System.out.println(bpd.getCategory());
         if (bpd.isUserData()) {
             UserPacketData upd = (UserPacketData) bpd;
             switch (upd.getMode()) {
                 case 0: {
                     BukkitSwitchHandler.getAsyncThread().append(cons -> {
                         Bukkit.getPluginManager().callEvent(new PlayerLoadEvent(upd.getBuffer(), 0, upd.getCategory(), upd.getUID()));
-
-
                     });
                 }
                 break;
                 case 1: {
                     if (upd.getCategory().equals("ClearData")) {
-                        Bukkit.getPluginManager().callEvent(new ClearDataEvent(upd.getBuffer(), 0, upd.getCategory(), upd.getUID()));
+                        Bukkit.getPluginManager().callEvent(new PlayerClearDataEvent(upd.getBuffer(), 0, upd.getCategory(), upd.getUID()));
                     } else if (upd.getCategory().equals("Initial")) {
-                        Bukkit.getPluginManager().callEvent(new InitialLoadEvent(upd.getBuffer(), 0, upd.getCategory(), upd.getUID()));
+                        Bukkit.getPluginManager().callEvent(new PlayerInitialLoadEvent(upd.getBuffer(), 0, upd.getCategory(), upd.getUID()));
                     } else {
                         BukkitSwitchHandler.getAsyncThread().append(cons -> {
                             Bukkit.getPluginManager().callEvent(new PlayerSaveEvent(upd.getBuffer(), 0, upd.getCategory(), upd.getUID()));

@@ -22,4 +22,8 @@ public class PlayerLoadEvent extends BukkitSwitchHandlerEvent {
     public UUID getUid() {
         return uid;
     }
+
+    public static HandlerList getHandlerList() {
+        return handlerList;
+    }
 }

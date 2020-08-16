@@ -8,7 +8,9 @@ import skywolf46.bungeeswitchlistener.data.BungeePacketData;
 public class PacketDataEncoder extends MessageToByteEncoder<BungeePacketData> {
     @Override
     protected void encode(ChannelHandlerContext channelHandlerContext, BungeePacketData pac, ByteBuf byteBuf) throws Exception {
+        System.out.println("Encode.");
         byteBuf.writeByte(pac.getPacketID());
         pac.write(byteBuf);
+        
     }
 }

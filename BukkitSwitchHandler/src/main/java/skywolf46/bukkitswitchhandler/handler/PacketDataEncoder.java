@@ -10,6 +10,7 @@ import skywolf46.bukkitswitchhandler.data.BungeePacketData;
 public class PacketDataEncoder extends MessageToByteEncoder<BungeePacketData> {
     @Override
     protected void encode(ChannelHandlerContext channelHandlerContext, BungeePacketData pac, ByteBuf byteBuf) throws Exception {
+        System.out.println("encode");
         byteBuf.writeByte(pac.getPacketID());
         pac.write(byteBuf);
     }

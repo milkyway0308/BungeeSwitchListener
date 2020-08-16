@@ -12,6 +12,7 @@ public class PacketDataDecoder extends ByteToMessageDecoder {
     @Override
     protected void decode(ChannelHandlerContext channelHandlerContext, ByteBuf byteBuf, List<Object> list) throws Exception {
         byte type = byteBuf.readByte();
+        System.out.println("decode " + type);
         switch (type) {
             case 0: {
                 list.add(new BungeePacketData(byteBuf));

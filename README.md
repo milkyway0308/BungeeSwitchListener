@@ -33,45 +33,55 @@ Sure. Look next line.<br><br>
 
 #### Deerializer / Reloader register
 ```java
-public class TestPlugin extends JavaPlugin implements Listener{
+public class TestPlugin extends JavaPlugin implements Listener {
+    private static HashMap<String, String> name = new HashMap<>();
+    private static final Object LOCK = new Object();
     @Override
     public void onEnable() {
         if (Bukkit.getPluginManager().getPlugin("BukkitSwitchHandler") != null){
-            try{
-                PreparedStatement stmt = BukkitSwitchHandler.getSQL().prepareStatement("create table if not exists testTable(user varchar(50), dataName varchar(20),data varchar(200), primary key (user)) CHARACTER SET utf8 COLLATE utf8_general_ci;");
-                stmt.executeUpdate();
-            }catch (Exception ex){
-                ex.printStackTrace();
+            Bukkit.getPluginManager().registerEvents(this, this);
+        }
+    }
+    
+    @EventHandler
+    public void ev(PlayerInitialLoadEvent e) {
+        // Call when player join to bungeecord proxy.
+        load(e.getUid());
+    }
+    
+    @EventHandler
+    public void ev(PlayerSaveEvent e){
+        
+    }
+    
+    private void load(UUID player){
+        try (PreparedStatement stmt = BukkitSwitchHandler.getSQL().prepareStatement("select * from testTable where uid = ?")){
+            stmt.setString(1, player.toString());
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()){
+                synchronized (LOCK){
+                    name.put(player.toString(), rs.getString(1));
+                }
             }
-           BukkitSwitchHandler.register("TestPlugin", (uid,di) -> {
-               // You can use DataInput for read external data
-               try {
-                   PreparedStatement stmt = BukkitSwitchHandler.getSQL().prepareStatement("select * from EssQL where user = ?");
-                   stmt.setString(1, uid.toString());
-                   ResultSet rs = stmt.executeQuery();
-                   if(rs.next()) {
-                       // Print "data" column
-                       System.out.println(rs.getString(3));
-                   } else {
-                       System.out.println("Data not exist: " + uid.toString());  
-                   }
-               } catch (Exception ex){
-                   
-               }
-           }, (uid, di) -> {
-               // Reload request here.
-           });
+            Bukkit.getScheduler().scheduleDelayedTask(this, ()->{
+                Player p = Bukkit.getPlayer(player);
+                if(p != null)
+                    p.setDisplayName(name);
+            });
+        } catch (Exception ignored){
+            
         }
     }
     
     @EventHandler
     public void ev(PlayerQuitEvent e){
-        try {
+        try (PreparedStatement stmt = BukkitSwitchHandler.getSQL().prepareStatement("insert into testTable values(?, ?)")){
             // Save.
-            PreparedStatement stmt = BukkitSwitchHandler.getSQL().prepareStatement("insert into testTable values(?, ?, ?)");
+            
             stmt.setString(1, e.getPlayer().getUniqueID().toString());
-            stmt.setString(2, "Test Data");
-            stmt.setString(3, "Hello, World");
+            synchronized (LOCK){
+                stmt.setString(2, name.getOrDefault(e.getPlayer().getUniqueID().toString(), e.getPlayer().getName()));
+            }
             stmt.executeUpdate();
             BukkitSwitchHandler.saveCompleteRequest("TestPlugin", e.getPlayer().getUniqueId());
         } catch (Exception ex){

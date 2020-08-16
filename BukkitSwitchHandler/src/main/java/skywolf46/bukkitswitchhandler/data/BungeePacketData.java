@@ -14,6 +14,7 @@ public class BungeePacketData {
     private boolean isBroadcast;
 
     public BungeePacketData(ByteBuf data) {
+        buf = Unpooled.buffer();
         read(data);
     }
 
@@ -44,16 +45,18 @@ public class BungeePacketData {
         this.category = readString(buf);
         readAdditional(buf);
         this.isBroadcast = buf.readBoolean();
-        this.buf.writeBytes(buf, buf.readInt());
+        byte[] b = new byte[buf.readInt()];
+        buf.readBytes(b);
+        this.buf.writeBytes(b);
     }
 
     public void write(ByteBuf buf) {
-        this.buf.readerIndex(0);
+//        this.buf.readerIndex(0);
         writeString(buf, category);
         writeAdditional(buf);
         buf.writeBoolean(isBroadcast);
         buf.writeInt(this.buf.readableBytes());
-        buf.writeBytes(buf);
+        buf.writeBytes(this.buf);
     }
 
     protected void writeAdditional(ByteBuf buf) {
@@ -71,7 +74,7 @@ public class BungeePacketData {
     }
 
     protected String readString(ByteBuf buf) {
-        byte[] arr = new byte[buf.readInt()];
+        byte[] arr = new byte[buf.readShort()];
         buf.readBytes(arr);
         return new String(arr);
     }

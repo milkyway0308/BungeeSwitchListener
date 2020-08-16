@@ -1,8 +1,8 @@
 package skywolf46.bungeeswitchlistener;
 
+import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import net.md_5.bungee.BungeeCord;
-import net.md_5.bungee.api.ProxyServer;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.netty.PipelineUtils;
 import org.fusesource.jansi.Ansi;
@@ -16,18 +16,18 @@ import java.lang.reflect.Field;
 import java.util.HashMap;
 
 public final class BungeeSwitchListener extends Plugin {
-    private static final HashMap<Integer, ChannelHandlerContext> context = new HashMap<>();
+    private static final HashMap<Integer, Channel> context = new HashMap<>();
 
-    public static void register(int port, ChannelHandlerContext ctx) {
+    public static void register(int port, Channel ctx) {
         context.put(port, ctx);
     }
 
-    public static ChannelHandlerContext get(int port) {
+    public static Channel get(int port) {
         return context.get(port);
     }
 
     public static void broadcast(ChannelHandlerContext ctx, BungeePacketData bpd) {
-        for (ChannelHandlerContext cht : context.values()) {
+        for (Channel cht : context.values()) {
             if (cht == ctx)
                 continue;
             cht.writeAndFlush(bpd);

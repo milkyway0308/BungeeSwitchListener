@@ -12,12 +12,7 @@ public class Request {
 
     public static void saveComplete(String task, UUID uid) {
         BukkitSwitchHandler.getSocket().add(tar -> {
-            ByteBuf bf = tar.getSocketChannel().alloc().buffer();
-            bf.writeByte(0);
-            writeString(bf, task);
-            writeString(bf, uid.toString());
-            bf.writeInt(0);
-            tar.getSocketChannel().writeAndFlush(bf);
+            tar.getSocketChannel().writeAndFlush(new UserPacketData(task, false, uid, 0));
         });
     }
 
@@ -41,11 +36,6 @@ public class Request {
 
     public static void saveComplete(String task, UUID uid, Consumer<ByteBuf> buf) {
         BukkitSwitchHandler.getSocket().add(tar -> {
-//            ByteBuf bf = tar.getSocketChannel().alloc().buffer();
-//            bf.writeByte(0);
-//            writeString(bf, task);
-//            writeString(bf, player.toString());
-//            writeBuffer(buf, tar, bf);
             UserPacketData upd = new UserPacketData(task, false, uid, 1);
             buf.accept(upd.getBuffer());
             tar.getSocketChannel().writeAndFlush(upd);

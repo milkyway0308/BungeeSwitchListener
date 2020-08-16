@@ -21,7 +21,6 @@ public class PacketHijackingHandler extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         ByteBuf bb = (ByteBuf) msg;
         bb.markReaderIndex();
-        System.out.println(bb.readableBytes());
         if (bb.readableBytes() == 12) {
             int x1 = bb.readInt();
             int x2 = bb.readInt();
@@ -32,15 +31,18 @@ public class PacketHijackingHandler extends ChannelInboundHandlerAdapter {
                 } catch (Exception ex) {
 
                 }
-                BungeeSwitchListener.register(bb.readInt(), ctx);
 //                ctx.pipeline().addFirst("fake-connection-listener", new ByteReadHandler());
-                ctx.pipeline().addFirst("packet-decoder", new PacketDataDecoder());
-                ctx.pipeline().addFirst("packet-encoder", new PacketDataEncoder());
-                ctx.pipeline().addAfter("packet-decoder", "packet-processor", new BungeePacketProcessor());
+                ctx.pipeline().addFirst("packet-data-encoder", new PacketDataEncoder());
+                ctx.pipeline().addLast("packet-data-decoder", new PacketDataDecoder());
+//                ctx.pipeline().addFirst("packet-encoder-sub", new PacketDataEncoderSub());
+                ctx.pipeline().addAfter("packet-data-decoder", "packet-data-processor", new BungeePacketProcessor());
+                System.out.println("Init");
                 ByteBuf bf = Unpooled.buffer();
                 bf.writeInt(108487);
                 bf.writeInt(498130);
                 ctx.channel().writeAndFlush(bf);
+                BungeeSwitchListener.register(bb.readInt(), ctx.channel());
+                System.out.println(ctx);
             }
         } else {
             ctx.pipeline().remove(this);

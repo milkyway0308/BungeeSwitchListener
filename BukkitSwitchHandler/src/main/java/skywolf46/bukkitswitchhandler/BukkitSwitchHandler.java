@@ -176,7 +176,7 @@ public final class BukkitSwitchHandler extends JavaPlugin {
     }
 
     public static void initialize(InfiniReadingSocket soc) {
-        System.out.println("Init.");
+//        System.out.println("Init.");
         socket = soc;
         synchronized (BukkitSwitchHandler.class) {
             for (String uid : sendReady.keySet()) {
