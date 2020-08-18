@@ -5,7 +5,7 @@ import org.bukkit.event.HandlerList;
 
 import java.util.UUID;
 
-public class PlayerClearDataEvent extends BukkitSwitchHandlerEvent {
+public class PlayerClearDataEvent extends BukkitSwitchHandlerPlayerEvent {
     private static HandlerList handlerList = new HandlerList();
     private UUID uid;
 
@@ -19,7 +19,8 @@ public class PlayerClearDataEvent extends BukkitSwitchHandlerEvent {
         return handlerList;
     }
 
-    public UUID getUid() {
+    @Override
+    public UUID getUID() {
         return uid;
     }
 

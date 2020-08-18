@@ -5,7 +5,7 @@ import org.bukkit.event.HandlerList;
 
 import java.util.UUID;
 
-public class PlayerSaveEvent extends BukkitSwitchHandlerEvent {
+public class PlayerSaveEvent extends BukkitSwitchHandlerPlayerEvent {
     private static HandlerList handlerList = new HandlerList();
     private UUID uid;
 
@@ -23,6 +23,8 @@ public class PlayerSaveEvent extends BukkitSwitchHandlerEvent {
         return handlerList;
     }
 
+
+    @Override
     public UUID getUID() {
         return uid;
     }
