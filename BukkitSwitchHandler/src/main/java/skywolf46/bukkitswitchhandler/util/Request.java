@@ -1,7 +1,6 @@
 package skywolf46.bukkitswitchhandler.util;
 
 import io.netty.buffer.ByteBuf;
-import io.netty.buffer.Unpooled;
 import skywolf46.bukkitswitchhandler.BukkitSwitchHandler;
 import skywolf46.bukkitswitchhandler.data.UserPacketData;
 

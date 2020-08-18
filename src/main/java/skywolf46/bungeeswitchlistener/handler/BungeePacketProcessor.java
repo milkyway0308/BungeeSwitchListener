@@ -25,6 +25,7 @@ public class BungeePacketProcessor extends ChannelInboundHandlerAdapter {
                     Channel ct = BungeeSwitchListener.get(((InetSocketAddress) sv.getInfo().getSocketAddress()).getPort());
                     if (ct != null)
                         ct.writeAndFlush(bpd);
+                    bpd.getBuffer().release();
                 }
             }
         } else {

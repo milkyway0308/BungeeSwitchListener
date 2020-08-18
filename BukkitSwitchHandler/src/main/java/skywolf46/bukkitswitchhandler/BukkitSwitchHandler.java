@@ -5,13 +5,11 @@ import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 import skywolf46.bukkitswitchhandler.Thread.SQLConsumerThread;
-import skywolf46.bukkitswitchhandler.listener.BroadcastListener;
-import skywolf46.bukkitswitchhandler.listener.DataLoadListener;
-import skywolf46.bukkitswitchhandler.listener.EventListener;
 import skywolf46.bukkitswitchhandler.util.InfiniReadingSocket;
 import skywolf46.bukkitswitchhandler.util.Request;
 
-import java.io.*;
+import java.io.DataInput;
+import java.io.File;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -57,10 +55,6 @@ public final class BukkitSwitchHandler extends JavaPlugin {
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
-        EventListener el = new EventListener();
-        Bukkit.getMessenger().registerIncomingPluginChannel(this, "MC|BungeeSwitcher", el);
-        Bukkit.getMessenger().registerIncomingPluginChannel(this, "MC|InitialLoad", new DataLoadListener());
-        Bukkit.getMessenger().registerIncomingPluginChannel(this, "MC|BSLBroadcast", new BroadcastListener());
 //        saveCompleteRequest("Tester", UUID.randomUUID());
 
         File fl = new File(getDataFolder(), "config.yml");

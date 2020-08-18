@@ -2,19 +2,9 @@ package skywolf46.bungeeswitchlistener.handler;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
-import io.netty.channel.ChannelHandler;
-import io.netty.channel.ChannelHandlerAdapter;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
-import net.md_5.bungee.BungeeCord;
-import net.md_5.bungee.api.connection.ProxiedPlayer;
-import net.md_5.bungee.protocol.LegacyDecoder;
-import net.md_5.bungee.protocol.Varint21FrameDecoder;
 import skywolf46.bungeeswitchlistener.BungeeSwitchListener;
-
-import java.io.ByteArrayOutputStream;
-import java.io.DataOutputStream;
-import java.util.UUID;
 
 public class PacketHijackingHandler extends ChannelInboundHandlerAdapter {
     @Override
@@ -36,13 +26,11 @@ public class PacketHijackingHandler extends ChannelInboundHandlerAdapter {
                 ctx.pipeline().addLast("packet-data-decoder", new PacketDataDecoder());
 //                ctx.pipeline().addFirst("packet-encoder-sub", new PacketDataEncoderSub());
                 ctx.pipeline().addAfter("packet-data-decoder", "packet-data-processor", new BungeePacketProcessor());
-                System.out.println("Init");
                 ByteBuf bf = Unpooled.buffer();
                 bf.writeInt(108487);
                 bf.writeInt(498130);
                 ctx.channel().writeAndFlush(bf);
                 BungeeSwitchListener.register(bb.readInt(), ctx.channel());
-                System.out.println(ctx);
             }
         } else {
             ctx.pipeline().remove(this);
