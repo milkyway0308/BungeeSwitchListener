@@ -11,4 +11,9 @@ public class PacketDataEncoder extends MessageToByteEncoder<BungeePacketData> {
         byteBuf.writeByte(pac.getPacketID());
         pac.write(byteBuf);
     }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        super.exceptionCaught(ctx, cause);
+    }
 }

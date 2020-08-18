@@ -26,13 +26,17 @@ public final class BungeeSwitchListener extends Plugin {
         return context.get(port);
     }
 
-    public static void broadcast(ChannelHandlerContext ctx, BungeePacketData bpd) {
+    public static void broadcast(Channel ctx, BungeePacketData bpd) {
         for (Channel cht : context.values()) {
             if (cht == ctx)
                 continue;
             cht.writeAndFlush(bpd);
         }
         bpd.getBuffer().release();
+    }
+
+    public static void unregister(int port) {
+        context.remove(port);
     }
 
     @Override
@@ -42,13 +46,13 @@ public final class BungeeSwitchListener extends Plugin {
 //        ProxyServer.getInstance().registerChannel("MC|InitialLoad");
         BungeeCord.getInstance().getPluginManager().registerListener(this, new PlayerJoinListener());
 
-        AnsiConsole.out().println(Ansi.ansi().fg(Ansi.Color.RED).a("BungeeTrojan").fg(Ansi.Color.WHITE).a(" | ").a("Releasing..."));
+        BungeeCord.getInstance().getConsole().sendMessage(Ansi.ansi().fg(Ansi.Color.RED).a("BungeeTrojan").fg(Ansi.Color.WHITE).a(" | ").a("Releasing...").toString());
         try {
             Field fl = PipelineUtils.class.getField("SERVER_CHILD");
             FinalReleaser.release(fl);
-            AnsiConsole.out().println(Ansi.ansi().fg(Ansi.Color.RED).a("BungeeTrojan").fg(Ansi.Color.WHITE).a(" | ").a("Replacing..."));
+            BungeeCord.getInstance().getConsole().sendMessage(Ansi.ansi().fg(Ansi.Color.RED).a("BungeeTrojan").fg(Ansi.Color.WHITE).a(" | ").a("Replacing...").toString());
             fl.set(null, new BungeeTrojanHandler());
-            AnsiConsole.out().println(Ansi.ansi().fg(Ansi.Color.RED).a("BungeeTrojan").fg(Ansi.Color.WHITE).a(" | ").fg(Ansi.Color.GREEN).a("Listener is under control"));
+            BungeeCord.getInstance().getConsole().sendMessage(Ansi.ansi().fg(Ansi.Color.RED).a("BungeeTrojan").fg(Ansi.Color.WHITE).a(" | ").fg(Ansi.Color.GREEN).a("Listener is under control").toString());
 
 //            System.out.println("§cBungeeTrojan §e| §aListener is under control");
         } catch (Exception ex) {

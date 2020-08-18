@@ -58,4 +58,11 @@ public class BungeePacketProcessor extends ChannelInboundHandlerAdapter {
             });
         }
     }
+
+    @Override
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        Bukkit.getConsoleSender().sendMessage("§6BukkitSwitchHandler §7| §4Bungee disconnected! §7Reconnecting...");
+
+        BukkitSwitchHandler.retry();
+    }
 }
