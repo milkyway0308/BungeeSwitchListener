@@ -39,8 +39,8 @@ public class UserPacketData extends BungeePacketData {
 
     @Override
     protected void writeAdditional(ByteBuf buf) {
-        buf.writeLong(uid.getLeastSignificantBits());
         buf.writeLong(uid.getMostSignificantBits());
+        buf.writeLong(uid.getLeastSignificantBits());
         buf.writeInt(mode);
     }
 

@@ -30,6 +30,7 @@ public final class BungeeSwitchListener extends Plugin {
         for (Channel cht : context.values()) {
             if (cht == ctx)
                 continue;
+            System.out.println("Broadcast...");
             cht.writeAndFlush(bpd);
         }
     }

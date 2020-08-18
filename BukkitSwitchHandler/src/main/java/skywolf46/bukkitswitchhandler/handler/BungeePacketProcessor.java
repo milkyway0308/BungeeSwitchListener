@@ -19,25 +19,29 @@ public class BungeePacketProcessor extends ChannelInboundHandlerAdapter {
             UserPacketData upd = (UserPacketData) bpd;
             switch (upd.getMode()) {
                 case 0: {
-                    BukkitSwitchHandler.getAsyncThread().append(cons -> {
+                    Bukkit.getScheduler().scheduleSyncDelayedTask(BukkitSwitchHandler.inst(), () -> {
                         Bukkit.getPluginManager().callEvent(new PlayerLoadEvent(upd.getBuffer(), 0, upd.getCategory(), upd.getUID()));
                     });
                 }
                 break;
                 case 1: {
                     if (upd.getCategory().equals("ClearData")) {
-                        Bukkit.getPluginManager().callEvent(new PlayerClearDataEvent(upd.getBuffer(), 0, upd.getCategory(), upd.getUID()));
+                        Bukkit.getScheduler().scheduleSyncDelayedTask(BukkitSwitchHandler.inst(), () -> {
+                            Bukkit.getPluginManager().callEvent(new PlayerClearDataEvent(upd.getBuffer(), 0, upd.getCategory(), upd.getUID()));
+                        });
                     } else if (upd.getCategory().equals("Initial")) {
-                        Bukkit.getPluginManager().callEvent(new PlayerInitialLoadEvent(upd.getBuffer(), 0, upd.getCategory(), upd.getUID()));
+                        Bukkit.getScheduler().scheduleSyncDelayedTask(BukkitSwitchHandler.inst(), () -> {
+                            Bukkit.getPluginManager().callEvent(new PlayerInitialLoadEvent(upd.getBuffer(), 0, upd.getCategory(), upd.getUID()));
+                        });
                     } else {
-                        BukkitSwitchHandler.getAsyncThread().append(cons -> {
+                        Bukkit.getScheduler().scheduleSyncDelayedTask(BukkitSwitchHandler.inst(), () -> {
                             Bukkit.getPluginManager().callEvent(new PlayerSaveEvent(upd.getBuffer(), 0, upd.getCategory(), upd.getUID()));
                         });
                     }
                 }
                 break;
                 case 2: {
-                    BukkitSwitchHandler.getAsyncThread().append(cons -> {
+                    Bukkit.getScheduler().scheduleSyncDelayedTask(BukkitSwitchHandler.inst(), () -> {
                         Bukkit.getPluginManager().callEvent(new PlayerReloadEvent(upd.getBuffer(), 0, upd.getCategory(), upd.getUID()));
                     });
                 }

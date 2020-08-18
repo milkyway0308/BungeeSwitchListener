@@ -20,6 +20,7 @@ public class PlayerJoinListener implements Listener {
             case LOBBY_FALLBACK:
 //                e.getRequest().getTarget().sendData("MC|InitialLoad", e.getPlayer().getUniqueId().toString().getBytes());
             {
+
                 System.out.println("Initial");
                 int port = ((InetSocketAddress) e.getRequest().getTarget().getSocketAddress()).getPort();
                 System.out.println(port);
@@ -28,6 +29,7 @@ public class PlayerJoinListener implements Listener {
                 if (ctx != null) {
                     System.out.println("write and flush");
                     ctx.writeAndFlush(new BungeePacketData("Nothing", false));
+
                     ctx.writeAndFlush(new UserPacketData("Initial", false, e.getPlayer().getUniqueId(), 1));
                 }
             }

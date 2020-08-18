@@ -5,21 +5,14 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import org.bukkit.Bukkit;
 import skywolf46.bukkitswitchhandler.BukkitSwitchHandler;
 import skywolf46.bukkitswitchhandler.handler.BungeePacketProcessor;
 import skywolf46.bukkitswitchhandler.handler.PacketDataDecoder;
 import skywolf46.bukkitswitchhandler.handler.PacketDataEncoder;
-import skywolf46.bukkitswitchhandler.handler.PacketDataEncoderSub;
 
-import java.io.ByteArrayInputStream;
-import java.io.DataInput;
-import java.io.DataInputStream;
 import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;

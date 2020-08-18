@@ -3,9 +3,6 @@ package skywolf46.bukkitswitchhandler.data;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 
-import java.io.ByteArrayInputStream;
-import java.io.DataInput;
-import java.io.DataInputStream;
 import java.util.UUID;
 
 public class BungeePacketData {
@@ -22,6 +19,10 @@ public class BungeePacketData {
         buf = Unpooled.buffer();
         this.category = task;
         this.isBroadcast = isBroadcast;
+    }
+
+    public boolean isBroadcast() {
+        return isBroadcast;
     }
 
     public byte getPacketID() {
@@ -45,18 +46,20 @@ public class BungeePacketData {
         this.category = readString(buf);
         readAdditional(buf);
         this.isBroadcast = buf.readBoolean();
-        byte[] b = new byte[buf.readInt()];
+        int len = buf.readInt();
+        byte[] b = new byte[len];
         buf.readBytes(b);
         this.buf.writeBytes(b);
     }
 
     public void write(ByteBuf buf) {
-//        this.buf.readerIndex(0);
+        this.buf.readerIndex(0);
         writeString(buf, category);
         writeAdditional(buf);
         buf.writeBoolean(isBroadcast);
         buf.writeInt(this.buf.readableBytes());
-        buf.writeBytes(this.buf);
+        buf.writeBytes(this.buf, this.buf.readableBytes());
+        this.buf.release();
     }
 
     protected void writeAdditional(ByteBuf buf) {

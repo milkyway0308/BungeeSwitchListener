@@ -52,12 +52,12 @@ public class BungeePacketData {
     }
 
     public void write(ByteBuf buf) {
-//        this.buf.readerIndex(0);
+        this.buf.readerIndex(0);
         writeString(buf, category);
         writeAdditional(buf);
         buf.writeBoolean(isBroadcast);
         buf.writeInt(this.buf.readableBytes());
-        buf.writeBytes(this.buf);
+        buf.writeBytes(this.buf, this.buf.readableBytes());
     }
 
     protected void writeAdditional(ByteBuf buf) {

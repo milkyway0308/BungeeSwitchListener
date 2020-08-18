@@ -112,10 +112,6 @@ public final class BukkitSwitchHandler extends JavaPlugin {
             throw new IllegalStateException("Listener for \"" + name + "\" is not registered");
     }
 
-    public static void register(String name, BiConsumer<UUID, DataInput> load, BiConsumer<UUID, DataInput> reload) {
-        listener.put(name, load);
-        rellistener.put(name, reload);
-    }
 
     public static void saveCompleteRequest(String task, UUID player) {
         synchronized (BukkitSwitchHandler.class) {
@@ -156,20 +152,20 @@ public final class BukkitSwitchHandler extends JavaPlugin {
         }
         Request.reload(task, player, buffer);
     }
-
-    public static void broadcastRequest(String task, UUID player, Consumer<ByteBuf> buffer, Consumer<List<DataInput>> inputs) {
-        synchronized (BukkitSwitchHandler.class) {
-            if (socket == null) {
-                reloadReady.computeIfAbsent(task, a -> new ArrayList<>()).add(player);
-                return;
-            }
-        }
-        long timestamp = RELOAD_TIMESTAMP.incrementAndGet();
-        synchronized (LOCK) {
-            WAITING_TIMESTAMP.put(timestamp, inputs);
-        }
-        Request.broadcast(task, player, buffer);
-    }
+//
+//    public static void broadcastRequest(String task, UUID player, Consumer<ByteBuf> buffer, Consumer<List<DataInput>> inputs) {
+//        synchronized (BukkitSwitchHandler.class) {
+//            if (socket == null) {
+//                reloadReady.computeIfAbsent(task, a -> new ArrayList<>()).add(player);
+//                return;
+//            }
+//        }
+//        long timestamp = RELOAD_TIMESTAMP.incrementAndGet();
+//        synchronized (LOCK) {
+//            WAITING_TIMESTAMP.put(timestamp, inputs);
+//        }
+//        Request.broadcast(task, player, buffer);
+//    }
 
     public static InfiniReadingSocket getSocket() {
         return socket;

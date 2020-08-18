@@ -28,12 +28,6 @@ public class Request {
         });
     }
 
-    private static void writeString(ByteBuf bf, String str) {
-        byte[] arr = str.getBytes();
-        bf.writeShort(arr.length);
-        bf.writeBytes(arr);
-    }
-
     public static void saveComplete(String task, UUID uid, Consumer<ByteBuf> buf) {
         BukkitSwitchHandler.getSocket().add(tar -> {
             UserPacketData upd = new UserPacketData(task, false, uid, 1);
@@ -74,9 +68,9 @@ public class Request {
 //            writeString(bf, task);
 //            writeString(bf, player.toString());
 //            writeBuffer(buf, tar, bf);
-            UserPacketData upd = new UserPacketData(task, true, player, 3);
+            UserPacketData upd = new UserPacketData(task, true, player, 2);
             buf.accept(upd.getBuffer());
-            tar.getSocketChannel().writeAndFlush(new UserPacketData(task, false, player, 2));
+            tar.getSocketChannel().writeAndFlush(upd);
         });
     }
 }
