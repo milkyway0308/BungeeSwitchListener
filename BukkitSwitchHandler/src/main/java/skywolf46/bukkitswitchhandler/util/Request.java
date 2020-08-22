@@ -29,26 +29,26 @@ public class Request {
 
     public static void saveComplete(String task, UUID uid, Consumer<ByteBuf> buf) {
         BukkitSwitchHandler.getSocket().add(tar -> {
-            UserPacketData upd = new UserPacketData(task, false, uid, 1);
+            UserPacketData upd = new UserPacketData(task, false, uid, 0);
             buf.accept(upd.getBuffer());
             tar.getSocketChannel().writeAndFlush(upd);
         });
     }
 
 
-    public static void broadcast(String task, UUID player, Consumer<ByteBuf> buf) {
-        BukkitSwitchHandler.getSocket().add(tar -> {
-//            ByteBuf bf = tar.getSocketChannel().alloc().buffer();
-//            bf.writeByte(2);
-//            bf.writeLong(timestamp);
-//            writeString(bf, task);
-//            writeString(bf, player.toString());
-//            writeBuffer(buf, tar, bf);
-            UserPacketData upd = new UserPacketData(task, true, player, 2);
-            buf.accept(upd.getBuffer());
-            tar.getSocketChannel().writeAndFlush(upd);
-        });
-    }
+//    public static void broadcast(String task, UUID player, Consumer<ByteBuf> buf) {
+//        BukkitSwitchHandler.getSocket().add(tar -> {
+////            ByteBuf bf = tar.getSocketChannel().alloc().buffer();
+////            bf.writeByte(2);
+////            bf.writeLong(timestamp);
+////            writeString(bf, task);
+////            writeString(bf, player.toString());
+////            writeBuffer(buf, tar, bf);
+//            UserPacketData upd = new UserPacketData(task, true, player, 2);
+//            buf.accept(upd.getBuffer());
+//            tar.getSocketChannel().writeAndFlush(upd);
+//        });
+//    }
 
 //    private static void writeBuffer(Consumer<ByteBuf> buf, InfiniReadingSocket tar, ByteBuf bf) {
 //        ByteBuf buffer = Unpooled.buffer();

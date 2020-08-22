@@ -3,6 +3,7 @@ package skywolf46.bungeeswitchlistener.data;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 
+import java.util.Arrays;
 import java.util.UUID;
 
 public class BungeePacketData {
@@ -46,7 +47,8 @@ public class BungeePacketData {
         this.category = readString(buf);
         readAdditional(buf);
         this.isBroadcast = buf.readBoolean();
-        byte[] b = new byte[buf.readInt()];
+        int len = buf.readInt();
+        byte[] b = new byte[len];
         buf.readBytes(b);
         this.buf.writeBytes(b);
     }
@@ -58,6 +60,7 @@ public class BungeePacketData {
         buf.writeBoolean(isBroadcast);
         buf.writeInt(this.buf.readableBytes());
         buf.writeBytes(this.buf, this.buf.readableBytes());
+        this.buf.release();
     }
 
     protected void writeAdditional(ByteBuf buf) {
