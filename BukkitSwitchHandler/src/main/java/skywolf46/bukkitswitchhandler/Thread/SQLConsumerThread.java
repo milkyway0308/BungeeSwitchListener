@@ -1,8 +1,7 @@
 package skywolf46.bukkitswitchhandler.Thread;
 
-import skywolf46.bukkitswitchhandler.BukkitSwitchHandler;
-
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -12,15 +11,17 @@ public class SQLConsumerThread extends Thread {
     private final List<Consumer<Connection>> writers = new ArrayList<>();
     private final Object LOCK = new Object();
     private static final AtomicBoolean disabled = new AtomicBoolean(false);
+    private Connection con;
 
-    public SQLConsumerThread() {
+    public SQLConsumerThread(Connection con) {
         setDaemon(false);
+        this.con = con;
     }
 
     public void append(Consumer<Connection> c) {
         synchronized (LOCK) {
             if (disabled.get())
-                c.accept(BukkitSwitchHandler.getSQL());
+                c.accept(this.con);
             else
                 writers.add(c);
         }
@@ -35,7 +36,11 @@ public class SQLConsumerThread extends Thread {
                 writers.clear();
             }
             lcs.forEach(lc -> {
-                lc.accept(BukkitSwitchHandler.getSQL());
+                try {
+                    lc.accept(this.con);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
             });
             lcs.clear();
             try {
@@ -46,7 +51,13 @@ public class SQLConsumerThread extends Thread {
         }
         synchronized (LOCK) {
             for (Consumer<Connection> lc : writers)
-                lc.accept(BukkitSwitchHandler.getSQL());
+                lc.accept(this.con);
+        }
+        try {
+            if (this.con != null)
+                this.con.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 

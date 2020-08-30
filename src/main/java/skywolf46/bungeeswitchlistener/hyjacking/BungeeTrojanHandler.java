@@ -36,12 +36,13 @@ public class BungeeTrojanHandler extends ChannelInitializer<Channel> {
         ch.pipeline().addAfter("frame-decoder", "packet-decoder", new MinecraftDecoder(Protocol.HANDSHAKE, true, ProxyServer.getInstance().getProtocolVersion()));
         ch.pipeline().addAfter("frame-prepender", "packet-encoder", new MinecraftEncoder(Protocol.HANDSHAKE, true, ProxyServer.getInstance().getProtocolVersion()));
         ch.pipeline().addBefore("frame-prepender", "legacy-kick", new KickStringWriter());
-        if (((InetSocketAddress) ch.remoteAddress()).getAddress().isLoopbackAddress()) {
-            ch.pipeline().addFirst("fake-connection-detector", new PacketHijackingHandler());
-        }
+
         ch.pipeline().get(HandlerBoss.class).setHandler(new InitialHandler(BungeeCord.getInstance(), listener));
         if (listener.isProxyProtocol()) {
             ch.pipeline().addFirst(new HAProxyMessageDecoder());
+        }
+        if (((InetSocketAddress) ch.remoteAddress()).getAddress().isLoopbackAddress()) {
+            ch.pipeline().addFirst("fake-connection-detector", new PacketHijackingHandler());
         }
     }
 }

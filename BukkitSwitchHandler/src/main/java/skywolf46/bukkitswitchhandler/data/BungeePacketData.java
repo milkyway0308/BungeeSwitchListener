@@ -57,8 +57,9 @@ public class BungeePacketData {
         writeString(buf, category);
         writeAdditional(buf);
         buf.writeBoolean(isBroadcast);
-        buf.writeInt(this.buf.readableBytes());
-        buf.writeBytes(this.buf, this.buf.readableBytes());
+        int toWrite = this.buf.readableBytes();
+        buf.writeInt(toWrite);
+        buf.writeBytes(this.buf, toWrite);
         this.buf.release();
     }
 

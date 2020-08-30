@@ -43,13 +43,14 @@ public class BungeePacketData {
         return null;
     }
 
-    public void read(ByteBuf buf) {
-        this.category = readString(buf);
-        readAdditional(buf);
-        this.isBroadcast = buf.readBoolean();
-        int len = buf.readInt();
+    public void read(ByteBuf inBuf) {
+        int length = inBuf.readableBytes();
+        this.category = readString(inBuf);
+        readAdditional(inBuf);
+        this.isBroadcast = inBuf.readBoolean();
+        int len = inBuf.readInt();
         byte[] b = new byte[len];
-        buf.readBytes(b);
+        inBuf.readBytes(b);
         this.buf.writeBytes(b);
     }
 
@@ -58,8 +59,9 @@ public class BungeePacketData {
         writeString(buf, category);
         writeAdditional(buf);
         buf.writeBoolean(isBroadcast);
-        buf.writeInt(this.buf.readableBytes());
-        buf.writeBytes(this.buf, this.buf.readableBytes());
+        int toWrite = this.buf.readableBytes();
+        buf.writeInt(toWrite);
+        buf.writeBytes(this.buf, toWrite);
         this.buf.release();
     }
 
@@ -86,4 +88,6 @@ public class BungeePacketData {
     public ByteBuf getBuffer() {
         return buf;
     }
+
+
 }

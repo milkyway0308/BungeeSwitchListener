@@ -1,4 +1,4 @@
-package skywolf46.bukkitswitchhandler.util;
+package skywolf46.bungeeswitchlistener.util;
 
 import io.netty.buffer.ByteBuf;
 

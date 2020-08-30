@@ -1,61 +1,57 @@
 package skywolf46.bukkitswitchhandler;
 
-import io.netty.buffer.ByteBuf;
+import io.netty.buffer.PooledByteBufAllocator;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 import skywolf46.bukkitswitchhandler.Thread.SQLConsumerThread;
-import skywolf46.bukkitswitchhandler.util.InfiniReadingSocket;
-import skywolf46.bukkitswitchhandler.util.Request;
+import skywolf46.bukkitswitchhandler.listener.PlayerListener;
+import skywolf46.bukkitswitchhandler.util.BungeePacketProxy;
 
-import java.io.DataInput;
 import java.io.File;
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.function.BiConsumer;
-import java.util.function.Consumer;
+import java.util.Properties;
+import java.util.Random;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public final class BukkitSwitchHandler extends JavaPlugin {
+
+    private static List<String> registeredProvider = new ArrayList<>();
 
     private static BukkitSwitchHandler inst;
 
     private static Connection SQL;
 
-    private static HashMap<String, BiConsumer<UUID, DataInput>> listener = new HashMap<>();
+    private static SQLConsumerThread packetThread;
 
-    private static InfiniReadingSocket socket;
+    private static BungeePacketProxy proxy;
 
-    private static HashMap<String, List<UUID>> sendReady = new HashMap<>();
+    private static List<SQLConsumerThread> sqlThreads = new ArrayList<>();
 
-    private static HashMap<String, List<UUID>> reloadReady = new HashMap<>();
+    private static PooledByteBufAllocator alloc = new PooledByteBufAllocator(false);
 
-    private static HashMap<String, BiConsumer<UUID, DataInput>> rellistener = new HashMap<>();
+    private static ExecutorService asyncExecutor = Executors.newCachedThreadPool();
 
+    private static final Random r = new Random();
 
-    private static SQLConsumerThread thd;
+    private static int port = 25577;
 
-    private static final AtomicLong RELOAD_TIMESTAMP = new AtomicLong(0);
-
-    private static final HashMap<Long, Consumer<List<DataInput>>> WAITING_TIMESTAMP = new HashMap<>();
-
-    private static final Object LOCK = new Object();
 
     @Override
-
     public void onEnable() {
         // Plugin startup logic
         inst = this;
-        (thd = new SQLConsumerThread()).start();
+        (packetThread = new SQLConsumerThread(null)).start();
         try {
             Class.forName("com.mysql.jdbc.Driver");
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
         }
-//        saveCompleteRequest("Tester", UUID.randomUUID());
+//        sendLoadRequest("Tester", UUID.randomUUID());
 
         File fl = new File(getDataFolder(), "config.yml");
         if (!fl.exists()) {
@@ -64,172 +60,134 @@ public final class BukkitSwitchHandler extends JavaPlugin {
         }
         YamlConfiguration conf = YamlConfiguration.loadConfiguration(fl);
         String url = conf.getString("SQL.Address");
+        port = conf.getInt("Bungeecord.Port", port);
+        int sqlThreadAmount = Math.max(1, conf.getInt("SQL.SQL Connection Threads", 1));
         try {
-            SQL = DriverManager.getConnection(url, conf.getString("SQL.User"), conf.getString("SQL.Password"));
+            Properties p = new Properties();
+            p.setProperty("autoReconnect", "true");
+            p.setProperty("user", conf.getString("SQL.User"));
+            p.setProperty("password", conf.getString("SQL.Password"));
+            SQL = DriverManager.getConnection(url, p);
             PreparedStatement stmt = BukkitSwitchHandler.getSQL().prepareStatement("show databases like 'BungeecordBridge'");
             ResultSet rs = stmt.executeQuery();
             if (!rs.next())
                 BukkitSwitchHandler.getSQL().prepareStatement("create database BungeecordBridge CHARACTER SET utf8 COLLATE utf8_general_ci;").execute();
-            BukkitSwitchHandler.getSQL().prepareStatement("use BungeecordBridge").execute();
+            try (PreparedStatement xt = BukkitSwitchHandler.getSQL().prepareStatement("use BungeecordBridge")) {
+                xt.executeUpdate();
+            }
+            for (int i = 0; i < sqlThreadAmount; i++) {
+                Connection con = DriverManager.getConnection(url, conf.getString("SQL.User"), conf.getString("SQL.Password"));
+                try (PreparedStatement xt = con.prepareStatement("use BungeecordBridge")) {
+                    xt.executeUpdate();
+                }
+                SQLConsumerThread thd = new SQLConsumerThread(con);
+                thd.start();
+                sqlThreads.add(thd);
+            }
+            Bukkit.getScheduler().scheduleSyncRepeatingTask(this, () -> {
+                try (PreparedStatement st = getSQL().prepareStatement("select 1 = 1")) {
+                    st.executeQuery();
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+                for (SQLConsumerThread thd : sqlThreads) {
+                    thd.append(con -> {
+                        try (PreparedStatement st = con.prepareStatement("select 1 = 1")) {
+                            st.executeQuery();
+                        } catch (SQLException e) {
+                            e.printStackTrace();
+                        }
+                    });
+                }
+            }, 72000L, 72000L);
         } catch (SQLException e) {
-            e.printStackTrace();
+//            e.printStackTrace();
+            Bukkit.getConsoleSender().sendMessage("§6BungeeSwitchHandler §7| §cFailed to connect on MySQL server. If you need to use BukkitSwitchHandler, restart server.");
             return;
         }
-        retry();
+        Bukkit.getPluginManager().registerEvents(new PlayerListener(), this);
+        proxy = new BungeePacketProxy(port);
+        startBungeeConnection();
     }
+
 
     @Override
     public void onDisable() {
         // Plugin shutdown logic
-        thd.stopThread();
+        if (SQL != null) {
+            try {
+                SQL.close();
+            } catch (SQLException ignored) {
+
+            }
+        }
+        for (SQLConsumerThread t : sqlThreads) {
+            t.stopThread();
+        }
+        packetThread.stopThread();
+        asyncExecutor.shutdown();
     }
 
-    public static SQLConsumerThread getAsyncThread() {
-        return thd;
+    public static List<String> getRegisteredProvider() {
+        return registeredProvider;
+    }
+
+    public static void registerProvider(String prov) {
+        registeredProvider.add(prov);
+    }
+
+    public static int getBungeecordPort() {
+        return port;
+    }
+
+    public static SQLConsumerThread getPacketThread() {
+        return packetThread;
+    }
+
+    public static SQLConsumerThread getRandomSQLThread() {
+        return sqlThreads.get(r.nextInt(sqlThreads.size()));
+    }
+
+    public static List<SQLConsumerThread> getThreads() {
+        return new ArrayList<>(sqlThreads);
     }
 
     public static BukkitSwitchHandler inst() {
         return inst;
     }
 
-    public static void load(String name, UUID user, DataInput bios) {
-        if (listener.containsKey(name))
-            listener.get(name).accept(user, bios);
-        else
-            throw new IllegalStateException("Listener for \"" + name + "\" is not registered");
-    }
 
-    public static void reload(String name, UUID user, DataInput bios) {
-        if (rellistener.containsKey(name))
-            rellistener.get(name).accept(user, bios);
-        else
-            throw new IllegalStateException("Listener for \"" + name + "\" is not registered");
-    }
-
-
-    public static void saveCompleteRequest(String task, UUID player) {
-        synchronized (BukkitSwitchHandler.class) {
-            if (socket == null) {
-                sendReady.computeIfAbsent(task, a -> new ArrayList<>()).add(player);
-                return;
-            }
-        }
-        Request.saveComplete(task, player);
-    }
-
-    public static void saveCompleteRequest(String task, UUID player, Consumer<ByteBuf> buf) {
-        synchronized (BukkitSwitchHandler.class) {
-            if (socket == null) {
-                sendReady.computeIfAbsent(task, a -> new ArrayList<>()).add(player);
-                return;
-            }
-        }
-        Request.saveComplete(task, player, buf);
-    }
-
-    public static void reloadRequest(String task, UUID player) {
-        synchronized (BukkitSwitchHandler.class) {
-            if (socket == null) {
-                reloadReady.computeIfAbsent(task, a -> new ArrayList<>()).add(player);
-                return;
-            }
-        }
-        Request.reload(task, player);
-    }
-
-    public static void reloadRequest(String task, UUID player, Consumer<ByteBuf> buffer) {
-        synchronized (BukkitSwitchHandler.class) {
-            if (socket == null) {
-                reloadReady.computeIfAbsent(task, a -> new ArrayList<>()).add(player);
-                return;
-            }
-        }
-        Request.reload(task, player, buffer);
-    }
-//
-//    public static void broadcastRequest(String task, UUID player, Consumer<ByteBuf> buffer, Consumer<List<DataInput>> inputs) {
-//        synchronized (BukkitSwitchHandler.class) {
-//            if (socket == null) {
-//                reloadReady.computeIfAbsent(task, a -> new ArrayList<>()).add(player);
-//                return;
-//            }
-//        }
-//        long timestamp = RELOAD_TIMESTAMP.incrementAndGet();
-//        synchronized (LOCK) {
-//            WAITING_TIMESTAMP.put(timestamp, inputs);
-//        }
-//        Request.broadcast(task, player, buffer);
-//    }
-
-    public static InfiniReadingSocket getSocket() {
-        return socket;
-    }
-
-    public static void initialize(InfiniReadingSocket soc) {
-//        System.out.println("Init.");
-        socket = soc;
-        synchronized (BukkitSwitchHandler.class) {
-            for (String uid : sendReady.keySet()) {
-                for (UUID x : sendReady.get(uid)) {
-                    saveCompleteRequest(uid, x);
-                }
-            }
-
-            for (String uid : reloadReady.keySet()) {
-                for (UUID x : reloadReady.get(uid)) {
-                    reloadRequest(uid, x);
-                }
-            }
-            sendReady.clear();
-            reloadReady.clear();
-        }
-    }
-
-    public static void retry() {
-        socket = null;
+    public static void startBungeeConnection() {
         new Thread(() -> {
-            InfiniReadingSocket waiter = null;
-            while (socket == null) {
-                if (waiter != null) {
-                    if (waiter.failed()) {
-                        Bukkit.getConsoleSender().sendMessage("§6BukkitSwitchHandler §7| §cBungee connection failed. Retry after 1 seconds...");
-                        waiter = null;
-                        try {
-                            Thread.sleep(1000);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    } else {
-                        try {
-                            Thread.sleep(100);
-                            continue;
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-
+            proxy.reconnect();
+            while (proxy.isConnectionFailed()) {
+                Bukkit.getConsoleSender().sendMessage("§6BungeeSwitchHandler §7| §4Bungee connect failed! §cRetry after 1 second.");
                 try {
-                    waiter = new InfiniReadingSocket();
-                } catch (Exception ex) {
-//                        socket = null;
-                    try {
-                        Thread.sleep(1000L);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
+                    Thread.sleep(1000L);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
+                proxy.reconnect();
             }
-        }).start();
-    }
 
-    public static void load(UUID uniqueId) {
-        for (BiConsumer<UUID, DataInput> bi : listener.values())
-            bi.accept(uniqueId, null);
+            Bukkit.getConsoleSender().sendMessage("§6BungeeSwitchHandler §7| §aBungee connection established.");
+        }).start();
     }
 
 
     public static Connection getSQL() {
         return SQL;
+    }
+
+    public static PooledByteBufAllocator getAllocator() {
+        return alloc;
+    }
+
+    public static BungeePacketProxy getProxy() {
+        return proxy;
+    }
+
+    public static Executor getExecutor() {
+        return asyncExecutor;
     }
 }

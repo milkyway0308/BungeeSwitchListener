@@ -23,17 +23,20 @@ public class PacketHijackingHandler extends ChannelInboundHandlerAdapter {
                 } catch (Exception ex) {
 
                 }
-                int port = bb.readInt();
-//                ctx.pipeline().addFirst("fake-connection-listener", new ByteReadHandler());
-                ctx.pipeline().addFirst("packet-data-encoder", new PacketDataEncoder());
-                ctx.pipeline().addFirst("packet-data-decoder", new PacketDataDecoder());
-//                ctx.pipeline().addFirst("packet-encoder-sub", new PacketDataEncoderSub());
-                ctx.pipeline().addAfter("packet-data-decoder", "packet-data-processor", new BungeePacketProcessor(port));
-                BungeeCord.getInstance().getConsole().sendMessage(Ansi.ansi().fg(Ansi.Color.YELLOW).a("BungeeSwitchListener").fg(Ansi.Color.WHITE).a(" | ").fg(Ansi.Color.GREEN).a("Incoming server connection : Port " + port).toString());
                 ByteBuf bf = Unpooled.buffer();
                 bf.writeInt(108487);
                 bf.writeInt(498130);
                 ctx.channel().writeAndFlush(bf);
+                int port = bb.readInt();
+//                ctx.pipeline().addFirst("fake-connection-listener", new ByteReadHandler());
+//                ctx.pipeline().addLast(new PacketDataEncoder(), new ByteSendingEncoder(), new ByteCollectingDecoder(), new PacketDataDecoder(), new BungeePacketProcessor(port));
+                ctx.pipeline().addLast("packet-encode-filter", new ByteSendingEncoder());
+                ctx.pipeline().addLast("packet-data-encoder", new PacketDataEncoder());
+                ctx.pipeline().addLast("packet-decode-filter", new ByteCollectingDecoder());
+                ctx.pipeline().addLast("packet-data-decoder", new PacketDataDecoder());
+                ctx.pipeline().addAfter("packet-data-decoder", "packet-data-processor", new BungeePacketProcessor(port));
+                BungeeCord.getInstance().getConsole().sendMessage(Ansi.ansi().fg(Ansi.Color.YELLOW).a("BungeeSwitchListener").fg(Ansi.Color.WHITE).a(" | ").fg(Ansi.Color.GREEN).a("Incoming server connection : Port " + port).toString());
+
                 BungeeSwitchListener.register(port, ctx.channel());
             }
         } else {
