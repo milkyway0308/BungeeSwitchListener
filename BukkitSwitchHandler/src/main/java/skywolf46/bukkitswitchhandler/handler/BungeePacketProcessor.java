@@ -16,7 +16,7 @@ public class BungeePacketProcessor extends ChannelInboundHandlerAdapter {
         BungeePacketData bpd = (BungeePacketData) msg;
         switch (bpd.getPacketID()) {
             case 0: {
-                System.out.println("Recv bungee packet");
+//                System.out.println("Recv bungee packet");
                 Bukkit.getScheduler().scheduleSyncDelayedTask(BukkitSwitchHandler.inst(), () -> {
                     Bukkit.getPluginManager().callEvent(new BroadcastListeningEvent(bpd.getBuffer(), 0, bpd.getCategory()));
                     bpd.getBuffer().release();
@@ -24,7 +24,7 @@ public class BungeePacketProcessor extends ChannelInboundHandlerAdapter {
             }
             break;
             case 1: {
-                System.out.println("Recv user packet");
+//                System.out.println("Recv user packet");
                 UserPacketData upd = (UserPacketData) bpd;
                 switch (upd.getMode()) {
                     case 0: {

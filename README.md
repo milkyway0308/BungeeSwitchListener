@@ -2,7 +2,8 @@
 Best synchronization system for your SQL system
 
 #### What is this?
-BungeeSwitchListener is cross-server synchronization for SQL system.
+Free from plugin messaging channel!
+BungeeSwitchListener is event based cross-server synchronization for SQL system.
 
 #### How it works?
 BungeeSwitchListener injecting handler to Bungeecord to receive custom packets.
@@ -20,13 +21,7 @@ BungeeSwitchListener is bungee based repeater, and you need to add reciever to b
 #### How I can use it?
 Add BukkitSwitchListener to plugin dependency.<br><br>
 
-When server startup, use BukkitSwitchHandler#register(Consumer<UUID,DataInput> load,Consumer<UUID,DataInput> reload) to register reciever.<br><br>
-
-When player quit, save to SQL.<br><br>
-
-After save complete, use BukkitSwitchHandler#saveCompleteRequest(String task, UUID uid)<br><br>
-
-<b>** Warning**</b> On player join, plugin will load with null parameter.
+When server startup, use BukkitSwitchHandler.registerProvider(String) to register your plugin category.<br>
 
 #### Is there an example?
 Sure. Look next line.<br><br>

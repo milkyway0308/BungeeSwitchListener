@@ -36,9 +36,11 @@ public final class BungeeSwitchListener extends Plugin {
     }
 
     public static void broadcast(Channel ctx, BungeePacketData bpd) {
-        for (Channel cht : context.values()) {
+        for (int str : context.keySet()) {
+            Channel cht = context.get(str);
             if (cht == ctx)
                 continue;
+//            System.out.println("Broadcast to " + str);
             bpd.getBuffer().retain();
             cht.writeAndFlush(bpd);
         }

@@ -1,6 +1,8 @@
 package skywolf46.bukkitswitchhandler.util;
 
 import com.github.luben.zstd.Zstd;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Consumer;
@@ -52,8 +54,12 @@ public class BukkitUtil {
     }
 
     public static String toString(ItemStack item) {
+        return toString(item, false);
+    }
+
+    public static byte[] toByte(ItemStack item, boolean compress) {
         try {
-            long start = System.currentTimeMillis();
+//            long start = System.currentTimeMillis();
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             DataOutputStream dos = new DataOutputStream(baos);
             dos.writeUTF(item.getType().name());
@@ -66,38 +72,60 @@ public class BukkitUtil {
                 dos.writeBoolean(true);
                 EXTRACT.invoke(null, ex, dos);
             }
-            byte[] arr = baos.toByteArray();
-            baos.close();
+            dos.flush();
+            dos.close();
             byte[] target;
-            if (arr.length <= 40) {
-                target = new byte[arr.length + 1];
-                target[0] = 0;
+
+            if (compress) {
+                byte[] arr = baos.toByteArray();
+                baos.close();
+                if (arr.length <= 40) {
+                    target = new byte[arr.length + 1];
+                    target[0] = 0;
+                } else {
+                    arr = Zstd.compress(arr);
+                    target = new byte[arr.length + 1];
+                    target[0] = 1;
+                }
+                System.arraycopy(arr, 0, target, 1, arr.length);
             } else {
-                arr = Zstd.compress(arr);
-                target = new byte[arr.length + 1];
-                target[0] = 1;
+                target = baos.toByteArray();
+                baos.close();
             }
-            System.arraycopy(arr, 0, target, 1, arr.length);
-            String data = Base64.getEncoder().encodeToString(target);
-            return data;
+            return target;
         } catch (Exception ex) {
             ex.printStackTrace();
         }
         return null;
     }
 
+    public static String toString(ItemStack item, boolean compress) {
+        return Base64.getEncoder().encodeToString(toByte(item, compress));
+    }
+
     public static ItemStack fromString(String str) {
+        return fromString(str, false);
+    }
+
+    public static ItemStack fromString(String str, boolean compress) {
+        return fromByte(Base64.getDecoder().decode(str), compress);
+    }
+
+    public static ItemStack fromByte(byte[] arr, boolean compress) {
         try {
-            byte[] arr = Base64.getDecoder().decode(str);
-            boolean decompressFlag = arr[0] == 1;
-            arr = Arrays.copyOfRange(arr, 1, arr.length);
-            if (decompressFlag) {
-                long size = Zstd.decompressedSize(arr);
-                arr = Zstd.decompress(arr, (int) size);
+            if (compress) {
+                boolean decompressFlag = arr[0] == 1;
+                arr = Arrays.copyOfRange(arr, 1, arr.length);
+                if (decompressFlag) {
+                    long size = Zstd.decompressedSize(arr);
+                    arr = Zstd.decompress(arr, (int) size);
+                }
             }
             ByteArrayInputStream bais = new ByteArrayInputStream(arr);
             DataInputStream dis = new DataInputStream(bais);
-            Material mat = Material.getMaterial(dis.readUTF());
+            String matter = dis.readUTF();
+            Material mat = Material.getMaterial(matter);
+            System.out.println("Material: " + matter);
             if (mat == null)
                 return null;
             ItemStack item = new ItemStack(mat, dis.readInt(), dis.readShort());
@@ -141,14 +169,14 @@ public class BukkitUtil {
     }
 
     public static void decompress(String target, Consumer<ItemStack> consumer) {
-        BukkitSwitchHandler.getExecutor().execute(() -> consumer.accept(fromString(target)));
+        BukkitSwitchHandler.getExecutor().execute(() -> consumer.accept(fromString(target, true)));
     }
 
     public static void decompress(String[] item, Consumer<ItemStack[]> consumer) {
         BukkitSwitchHandler.getExecutor().execute(() -> {
             ItemStack[] data = new ItemStack[item.length];
             for (int i = 0; i < item.length; i++)
-                data[i] = fromString(item[i]);
+                data[i] = fromString(item[i], true);
             consumer.accept(data);
         });
     }
@@ -158,14 +186,14 @@ public class BukkitUtil {
         BukkitSwitchHandler.getExecutor().execute(() -> {
             List<ItemStack> data = new ArrayList<>();
             for (String s : item)
-                data.add(fromString(s));
+                data.add(fromString(s, true));
             consumer.accept(data);
         });
     }
 
     public static void compress(ItemStack item, Consumer<String> consumer) {
         BukkitSwitchHandler.getExecutor().execute(() -> {
-            consumer.accept(toString(item));
+            consumer.accept(toString(item, true));
         });
     }
 
@@ -173,7 +201,7 @@ public class BukkitUtil {
         BukkitSwitchHandler.getExecutor().execute(() -> {
             String[] data = new String[item.length];
             for (int i = 0; i < item.length; i++)
-                data[i] = toString(item[i]);
+                data[i] = toString(item[i], true);
             consumer.accept(data);
         });
     }
@@ -182,8 +210,30 @@ public class BukkitUtil {
         BukkitSwitchHandler.getExecutor().execute(() -> {
             List<String> data = new ArrayList<>();
             for (ItemStack itemStack : item)
-                data.add(toString(itemStack));
+                data.add(toString(itemStack, true));
             consumer.accept(data);
+        });
+    }
+
+    public static void compress(byte[] buf, Consumer<ByteBuf> consumer) {
+        BukkitSwitchHandler.getExecutor().execute(() -> {
+            ByteBuf buffer = Unpooled.wrappedBuffer(buf);
+            byte[] arr = new byte[buffer.readableBytes()];
+            buffer.readBytes(arr);
+            arr = Zstd.compress(arr);
+            buffer.release();
+            buffer = Unpooled.wrappedBuffer(arr);
+            consumer.accept(buffer);
+            buffer.release();
+        });
+    }
+
+    public static void decompress(byte[] buf, Consumer<ByteBuf> consumer) {
+        BukkitSwitchHandler.getExecutor().execute(() -> {
+            byte[] arr = Zstd.decompress(buf, (int) Zstd.decompressedSize(buf));
+            ByteBuf buffer = Unpooled.wrappedBuffer(arr);
+            consumer.accept(buffer);
+            buffer.release();
         });
     }
 }
