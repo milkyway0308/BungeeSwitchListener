@@ -38,6 +38,8 @@ public final class BukkitSwitchHandler extends JavaPlugin {
 
     private static final Random r = new Random();
 
+    private static String ip = "localhost";
+
     private static int port = 25577;
 
 
@@ -61,6 +63,7 @@ public final class BukkitSwitchHandler extends JavaPlugin {
         YamlConfiguration conf = YamlConfiguration.loadConfiguration(fl);
         String url = conf.getString("SQL.Address");
         port = conf.getInt("Bungeecord.Port", port);
+        ip = conf.getString("Bungeecord.IP", ip);
         int sqlThreadAmount = Math.max(1, conf.getInt("SQL.SQL Connection Threads", 1));
         try {
             Properties p = new Properties();
@@ -134,6 +137,10 @@ public final class BukkitSwitchHandler extends JavaPlugin {
 
     public static void registerProvider(String prov) {
         registeredProvider.add(prov);
+    }
+
+    public static String getBungeecordIP() {
+        return ip;
     }
 
     public static int getBungeecordPort() {

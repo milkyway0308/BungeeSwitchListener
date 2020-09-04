@@ -12,6 +12,7 @@ public class SQLConsumerThread extends Thread {
     private final Object LOCK = new Object();
     private static final AtomicBoolean disabled = new AtomicBoolean(false);
     private Connection con;
+    private long delay = 100;
 
     public SQLConsumerThread(Connection con) {
         setDaemon(false);
@@ -49,9 +50,19 @@ public class SQLConsumerThread extends Thread {
                 e.printStackTrace();
             }
         }
-        synchronized (LOCK) {
-            for (Consumer<Connection> lc : writers)
-                lc.accept(this.con);
+        while (delay-- > 0) {
+            synchronized (LOCK) {
+                if (writers.size() > 0)
+                    delay += 10;
+                for (Consumer<Connection> lc : writers)
+                    lc.accept(this.con);
+                writers.clear();
+            }
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
         try {
             if (this.con != null)

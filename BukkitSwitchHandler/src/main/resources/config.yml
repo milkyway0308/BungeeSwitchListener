@@ -4,4 +4,5 @@ SQL:
   Password: '1111'
   SQL Connection Threads: 4
 Bungeecord:
+  IP: 'localhost'
   Port: 25577

@@ -28,5 +28,22 @@ public class ByteBufUtility {
         return new UUID(buf.readLong(), buf.readLong());
     }
 
+    public static byte[] readAllBytes(ByteBuf buf) {
+        byte[] b = new byte[buf.readableBytes()];
+        buf.readBytes(b);
+        return b;
+    }
+
+    public static byte[] readNextArray(ByteBuf buf) {
+        byte[] b = new byte[buf.readInt()];
+        buf.readBytes(b);
+        return b;
+    }
+
+    public static void writeNextArray(ByteBuf buf, byte[] b) {
+        buf.writeInt(b.length);
+        buf.writeBytes(b);
+    }
+
 
 }

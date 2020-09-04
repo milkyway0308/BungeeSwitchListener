@@ -2,7 +2,9 @@ package skywolf46.bukkitswitchhandler.data;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import skywolf46.bukkitswitchhandler.util.ByteBufUtility;
 
+import java.util.Arrays;
 import java.util.UUID;
 
 public class BungeePacketData {
@@ -43,11 +45,15 @@ public class BungeePacketData {
     }
 
     public void read(ByteBuf buf) {
+//        buf.markReaderIndex();
+//        System.out.println(Arrays.toString(ByteBufUtility.readAllBytes(buf)));
+//        buf.resetReaderIndex();
         this.category = readString(buf);
         readAdditional(buf);
         this.isBroadcast = buf.readBoolean();
         int len = buf.readInt();
         byte[] b = new byte[len];
+//        System.out.println("Reading byte " + len + " on " + category);
         buf.readBytes(b);
         this.buf.writeBytes(b);
     }
@@ -58,10 +64,17 @@ public class BungeePacketData {
         writeAdditional(buf);
         buf.writeBoolean(isBroadcast);
         int toWrite = this.buf.readableBytes();
+//        System.out.println("Writing " + toWrite + " bytes");
         buf.writeInt(toWrite);
-        buf.writeBytes(this.buf, toWrite);
+        byte[] wr = new byte[toWrite];
+        this.buf.readBytes(wr);
+        buf.writeBytes(wr);
+//        buf.markReaderIndex();
+//        System.out.println(Arrays.toString(ByteBufUtility.readAllBytes(buf)));
+//        buf.resetReaderIndex();
         this.buf.release();
     }
+
 
     protected void writeAdditional(ByteBuf buf) {
 

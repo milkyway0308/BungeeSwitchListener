@@ -2,14 +2,19 @@ package skywolf46.bungeeswitchlistener.data;
 
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
+import skywolf46.bungeeswitchlistener.util.ByteBufUtility;
 
 import java.util.Arrays;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class BungeePacketData {
     private String category;
     private ByteBuf buf;
     private boolean isBroadcast;
+    private byte[] writerByte = null;
+    private final Object LOCK = new Object();
+
 
     public BungeePacketData(ByteBuf data) {
         buf = Unpooled.buffer();
@@ -55,14 +60,19 @@ public class BungeePacketData {
     }
 
     public void write(ByteBuf buf) {
-        this.buf.readerIndex(0);
+        synchronized (LOCK) {
+            if (writerByte == null) {
+                writerByte = ByteBufUtility.readAllBytes(this.buf);
+                this.buf.release();
+            }
+        }
         writeString(buf, category);
         writeAdditional(buf);
         buf.writeBoolean(isBroadcast);
-        int toWrite = this.buf.readableBytes();
-        buf.writeInt(toWrite);
-        buf.writeBytes(this.buf, toWrite);
-        this.buf.release();
+        buf.writeInt(writerByte.length);
+        buf.writeBytes(writerByte);
+//        System.out.println("Write " + toWrite);
+
     }
 
     protected void writeAdditional(ByteBuf buf) {

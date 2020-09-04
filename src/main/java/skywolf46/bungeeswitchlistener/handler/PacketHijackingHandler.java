@@ -38,8 +38,13 @@ public class PacketHijackingHandler extends ChannelInboundHandlerAdapter {
                 BungeeCord.getInstance().getConsole().sendMessage(Ansi.ansi().fg(Ansi.Color.YELLOW).a("BungeeSwitchListener").fg(Ansi.Color.WHITE).a(" | ").fg(Ansi.Color.GREEN).a("Incoming server connection : Port " + port).toString());
 
                 BungeeSwitchListener.register(port, ctx.channel());
+            } else {
+                bb.resetReaderIndex();
+                ctx.pipeline().remove(this);
+                super.channelRead(ctx, msg);
             }
         } else {
+            bb.resetReaderIndex();
             ctx.pipeline().remove(this);
             super.channelRead(ctx, msg);
         }

@@ -70,7 +70,7 @@ public class BungeePacketProcessor extends ChannelInboundHandlerAdapter {
                     ProxyServer.getInstance().getConsole().sendMessage("§6BungeeSwitchListener §7| §cPacket to server " + (direct.isPortMode() ? "Port " + direct.getPort() : direct.getTargetServer()) + " dropped; Server not using BukkitSwitchHandler");
                     return;
                 }
-                direct.getBuffer().retain();
+//                direct.getBuffer().retain();
                 sChan.writeAndFlush(direct);
             }
         }

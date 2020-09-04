@@ -41,7 +41,7 @@ public class BungeeClientSocket {
                 }
                 channel = null;
             }
-            channel = strap.connect(new InetSocketAddress("localhost", port)).sync().channel();
+            channel = strap.connect(new InetSocketAddress(BukkitSwitchHandler.getBungeecordIP(), port)).sync().channel();
             failed.set(false);
         } catch (Exception ex) {
             failed.set(true);

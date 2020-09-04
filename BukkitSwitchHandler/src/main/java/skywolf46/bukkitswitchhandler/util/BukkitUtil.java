@@ -125,7 +125,7 @@ public class BukkitUtil {
             DataInputStream dis = new DataInputStream(bais);
             String matter = dis.readUTF();
             Material mat = Material.getMaterial(matter);
-            System.out.println("Material: " + matter);
+//            System.out.println("Material: " + matter);
             if (mat == null)
                 return null;
             ItemStack item = new ItemStack(mat, dis.readInt(), dis.readShort());

@@ -1,6 +1,7 @@
 package skywolf46.bungeeswitchlistener;
 
 import io.netty.buffer.PooledByteBufAllocator;
+import io.netty.buffer.UnpooledHeapByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import net.md_5.bungee.BungeeCord;
@@ -36,16 +37,23 @@ public final class BungeeSwitchListener extends Plugin {
     }
 
     public static void broadcast(Channel ctx, BungeePacketData bpd) {
+//        System.out.println("Retain " + (context.values().stream().filter(ch -> ch != ctx).count()));
+//        int cnt = (int) (context.values().stream().filter(ch -> ch != ctx).count());
+//        bpd.getBuffer().retain(
+//                cnt + 1
+//        );
         for (int str : context.keySet()) {
             Channel cht = context.get(str);
-            if (cht == ctx)
+            if (cht == ctx){
+//                System.out.println("Equals; Continue.");
                 continue;
+            }
 //            System.out.println("Broadcast to " + str);
-            bpd.getBuffer().retain();
+//            bpd.getBuffer().retain();
             cht.writeAndFlush(bpd);
         }
 
-        bpd.getBuffer().release();
+//        bpd.getBuffer().release();
     }
 
     public static List<Channel> getChannels() {
