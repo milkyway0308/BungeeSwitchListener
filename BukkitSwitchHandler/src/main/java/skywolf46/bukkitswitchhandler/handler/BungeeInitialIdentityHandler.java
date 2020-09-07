@@ -30,8 +30,8 @@ public class BungeeInitialIdentityHandler extends ChannelInboundHandlerAdapter {
             ctx.pipeline().addLast("bungee-encode-filter", new ByteSendingEncoder());
             ctx.pipeline().addLast("bungee-encoder", new PacketDataEncoder());
             ctx.pipeline().addLast("bungee-decode-filter", new ByteCollectingDecoder());
-            ctx.pipeline().addLast("bungee-decoder", new PacketDataDecoder());
-            ctx.pipeline().addAfter("bungee-decoder", "bungee-processor", new BungeePacketProcessor());
+//            ctx.pipeline().addLast("bungee-decoder", new PacketDataDecoder());
+//            ctx.pipeline().addAfter("bungee-decoder", "bungee-processor", new BungeePacketProcessor());
 //            ctx.pipeline().addLast("bungee-decoder", new PacketDataDecoder());
             ctx.pipeline().addLast("bungee-exception-handler", new BungeeErrorHandler());
             ctx.pipeline().remove(this);

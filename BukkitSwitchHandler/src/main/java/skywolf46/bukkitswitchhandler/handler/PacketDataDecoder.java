@@ -6,9 +6,13 @@ import io.netty.handler.codec.ByteToMessageDecoder;
 import skywolf46.bukkitswitchhandler.data.BungeePacketData;
 import skywolf46.bukkitswitchhandler.data.UserPacketData;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class PacketDataDecoder extends ByteToMessageDecoder {
+
+    private static PacketDataDecoder decoder = new PacketDataDecoder();
+
     @Override
     protected void decode(ChannelHandlerContext channelHandlerContext, ByteBuf byteBuf, List<Object> list) throws Exception {
         byte type = byteBuf.readByte();
@@ -27,4 +31,13 @@ public class PacketDataDecoder extends ByteToMessageDecoder {
         }
     }
 
+    public static void forceDecode(ByteBuf buf) {
+        List<Object> li = new ArrayList<>();
+        try {
+            decoder.decode(null, buf, li);
+            BungeePacketProcessor.forceProcess((BungeePacketData) li.get(0));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }

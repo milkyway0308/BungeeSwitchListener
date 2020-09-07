@@ -23,7 +23,7 @@ public class PacketHijackingHandler extends ChannelInboundHandlerAdapter {
                 } catch (Exception ex) {
 
                 }
-                ByteBuf bf = Unpooled.buffer();
+                ByteBuf bf = Unpooled.directBuffer();
                 bf.writeInt(108487);
                 bf.writeInt(498130);
                 ctx.channel().writeAndFlush(bf);
@@ -32,9 +32,9 @@ public class PacketHijackingHandler extends ChannelInboundHandlerAdapter {
 //                ctx.pipeline().addLast(new PacketDataEncoder(), new ByteSendingEncoder(), new ByteCollectingDecoder(), new PacketDataDecoder(), new BungeePacketProcessor(port));
                 ctx.pipeline().addLast("packet-encode-filter", new ByteSendingEncoder());
                 ctx.pipeline().addLast("packet-data-encoder", new PacketDataEncoder());
-                ctx.pipeline().addLast("packet-decode-filter", new ByteCollectingDecoder());
-                ctx.pipeline().addLast("packet-data-decoder", new PacketDataDecoder());
-                ctx.pipeline().addAfter("packet-data-decoder", "packet-data-processor", new BungeePacketProcessor(port));
+                ctx.pipeline().addLast("packet-decode-filter", new ByteCollectingDecoder(port));
+//                ctx.pipeline().addLast("packet-data-decoder", new PacketDataDecoder());
+//                ctx.pipeline().addAfter("packet-data-decoder", "packet-data-processor", new BungeePacketProcessor(port));
                 BungeeCord.getInstance().getConsole().sendMessage(Ansi.ansi().fg(Ansi.Color.YELLOW).a("BungeeSwitchListener").fg(Ansi.Color.WHITE).a(" | ").fg(Ansi.Color.GREEN).a("Incoming server connection : Port " + port).toString());
 
                 BungeeSwitchListener.register(port, ctx.channel());

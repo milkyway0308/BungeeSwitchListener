@@ -1,5 +1,6 @@
 package skywolf46.bukkitswitchhandler.handler;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -10,6 +11,7 @@ import skywolf46.bukkitswitchhandler.data.UserPacketData;
 import skywolf46.bukkitswitchhandler.event.*;
 
 public class BungeePacketProcessor extends ChannelInboundHandlerAdapter {
+    private static BungeePacketProcessor proc = new BungeePacketProcessor();
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
@@ -85,7 +87,14 @@ public class BungeePacketProcessor extends ChannelInboundHandlerAdapter {
                 });
             }
         }
+    }
 
+    public static void forceProcess(BungeePacketData data) {
+        try {
+            proc.channelRead(null, data);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 }
