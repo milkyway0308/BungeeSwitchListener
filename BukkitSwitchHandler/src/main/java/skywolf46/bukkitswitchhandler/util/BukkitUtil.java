@@ -83,7 +83,7 @@ public class BukkitUtil {
                     target = new byte[arr.length + 1];
                     target[0] = 0;
                 } else {
-                    arr = Zstd.compress(arr);
+                    arr = Zstd.compress(arr,0);
                     target = new byte[arr.length + 1];
                     target[0] = 1;
                 }
@@ -220,7 +220,7 @@ public class BukkitUtil {
             ByteBuf buffer = Unpooled.wrappedBuffer(buf);
             byte[] arr = new byte[buffer.readableBytes()];
             buffer.readBytes(arr);
-            arr = Zstd.compress(arr);
+            arr = Zstd.compress(arr,0);
             buffer.release();
             buffer = Unpooled.wrappedBuffer(arr);
             consumer.accept(buffer);

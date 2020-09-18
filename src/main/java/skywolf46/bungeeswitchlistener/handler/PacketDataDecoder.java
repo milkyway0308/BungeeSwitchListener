@@ -32,6 +32,8 @@ public class PacketDataDecoder extends ByteToMessageDecoder {
             default:
                 throw new IllegalStateException("Cannot read data: packet type " + type + " is not defined");
         }
+        BungeePacketData bpd = (BungeePacketData) list.get(0);
+//        System.out.println("Category " + bpd.getCategory() + " / " + " Buffer size " + bpd.getBuffer().readableBytes());
     }
 
     @Override

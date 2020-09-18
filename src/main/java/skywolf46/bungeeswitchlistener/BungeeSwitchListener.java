@@ -42,6 +42,11 @@ public final class BungeeSwitchListener extends Plugin {
 //        bpd.getBuffer().retain(
 //                cnt + 1
 //        );
+
+//        System.out.println("Broadcast retain " +  (int) context.values().stream().filter(ct -> ct != ctx).count());
+        bpd.getBuffer().retain(
+                (int) context.values().stream().filter(ct -> ct != ctx).count()
+        );
         for (int str : context.keySet()) {
             Channel cht = context.get(str);
             if (cht == ctx){

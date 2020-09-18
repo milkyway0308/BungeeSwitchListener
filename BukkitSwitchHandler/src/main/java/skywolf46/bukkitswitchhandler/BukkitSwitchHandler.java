@@ -7,6 +7,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import skywolf46.bukkitswitchhandler.Thread.SQLConsumerThread;
 import skywolf46.bukkitswitchhandler.listener.PlayerListener;
 import skywolf46.bukkitswitchhandler.util.BungeePacketProxy;
+import skywolf46.bukkitswitchhandler.util.sqlpool.SQLThreadPool;
 
 import java.io.File;
 import java.sql.*;
@@ -42,6 +43,10 @@ public final class BukkitSwitchHandler extends JavaPlugin {
 
     private static int port = 25577;
 
+    private static Properties sqlProp;
+
+    private static String sqlAddress;
+
 
     @Override
     public void onEnable() {
@@ -61,12 +66,12 @@ public final class BukkitSwitchHandler extends JavaPlugin {
             saveResource("config.yml", true);
         }
         YamlConfiguration conf = YamlConfiguration.loadConfiguration(fl);
-        String url = conf.getString("SQL.Address");
+        String url = (sqlAddress = conf.getString("SQL.Address"));
         port = conf.getInt("Bungeecord.Port", port);
         ip = conf.getString("Bungeecord.IP", ip);
         int sqlThreadAmount = Math.max(1, conf.getInt("SQL.SQL Connection Threads", 1));
         try {
-            Properties p = new Properties();
+            Properties p = (sqlProp = new Properties());
             p.setProperty("autoReconnect", "true");
             p.setProperty("user", conf.getString("SQL.User"));
             p.setProperty("password", conf.getString("SQL.Password"));
@@ -129,6 +134,14 @@ public final class BukkitSwitchHandler extends JavaPlugin {
         }
         packetThread.stopThread();
         asyncExecutor.shutdown();
+    }
+
+    public static SQLThreadPool createSQLThreadPool(int defConnection) throws SQLException {
+        return new SQLThreadPool(defConnection);
+    }
+
+    public static SQLConsumerThread createIndividualThread() throws SQLException {
+        return new SQLConsumerThread(DriverManager.getConnection(sqlAddress, sqlProp));
     }
 
     public static List<String> getRegisteredProvider() {

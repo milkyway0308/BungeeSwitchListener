@@ -45,7 +45,7 @@ public class SQLConsumerThread extends Thread {
             });
             lcs.clear();
             try {
-                Thread.sleep(3L);
+                Thread.sleep(1L);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
